@@ -36,12 +36,6 @@ typedef unsigned long long uint64_t;
 // Platform specific file I/O 
 // ===========================
 
-#ifdef WIN32
-const char OS_DIRECTORY_SEPARATOR = '\\';
-#else
-const char OS_DIRECTORY_SEPARATOR = '/';
-#endif
-
 #define DIRECTORY_NAME_LENGTH    255
 
 
@@ -49,6 +43,18 @@ const char OS_DIRECTORY_SEPARATOR = '/';
 // Program specific types
 // =======================
 
+// size type
 typedef uint64_t cnv_size_t;
+
+// boolean type
+typedef short Bool;
+
+// boolean constants
+#define FALSE 0
+#define TRUE  1
+
+// function return status
+#define CNV_OK   0
+#define CNV_ERR -1
 
 #endif  /*CNV_TYPES_H*/
