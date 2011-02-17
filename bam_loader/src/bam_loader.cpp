@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
 		cerr<<"Can't allocate space for sample name array"<<endl;
 	}
 
-	BamTools::BamReader reader;
+	BamTools::BamReader *reader;
 		
 	while(argc > 0)	// Iterate through all the remaining parameters, treating as samples
 	{
@@ -182,31 +182,36 @@ int main(int argc, char* argv[])
 		strcpy(fn_bai, *argv);
 		strcat(fn_bai, ".bai");
 		
-		
-		if(!reader.Open(*argv, fn_bai))
+		reader = new BamTools::BamReader();
+
+		if(!reader->Open(*argv, fn_bai))
 		{
 			cerr<<"Error happened opening bam file: "<<*argv<<endl;
 			free(fn_bai);
 			argc--;
 			argv++;
+			delete reader;
 			continue;
 		}
 
-		if(!reader.IsOpen())
+		if(!reader->IsOpen())
 		{
 			cerr<<"Cannot open bamfile: "<<*argv<<endl;
 			free(fn_bai);
 			argc--;
 			argv++;
+			delete reader;
 			continue;
 		}
 
-		if(!reader.HasIndex())
+		if(!reader->HasIndex())
 		{
 			cerr<<"Cannot open bai file: "<<fn_bai<<endl;
 			free(fn_bai);
 			argc--;
 			argv++;
+			reader->Close();
+			delete reader;
 			continue;
 		}
 
@@ -216,16 +221,16 @@ int main(int argc, char* argv[])
 		for(idx_target=0; idx_target<Targets.size(); idx_target++)
 		{
 			t_Target currentTarget = Targets[idx_target];
-			int refID = reader.GetReferenceID(currentTarget.name);
+			int refID = reader->GetReferenceID(currentTarget.name);
 
-			if(!reader.SetRegion(refID, currentTarget.start, refID, currentTarget.end))
+			if(!reader->SetRegion(refID, currentTarget.start, refID, currentTarget.end))
 			{
 				cerr<<"Invalid interval: '"<<currentTarget.name<<"':"<<refID<<"\t"<<currentTarget.start<<"\t"<<currentTarget.end<<endl;
 				continue;
 			}
 
 			BamTools::BamAlignment a;
-			while(reader.GetNextAlignmentCore(a))
+			while(reader->GetNextAlignmentCore(a))
 			{
 				if(a.Position >= currentTarget.start)
 					coverageData[idx_sample][idx_target]++;
@@ -236,7 +241,8 @@ int main(int argc, char* argv[])
 
 		}
 
-		reader.Close();
+		reader->Close();
+		delete reader;
 
 		argc--;
 		argv++;
