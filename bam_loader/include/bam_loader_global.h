@@ -7,8 +7,8 @@
 
 typedef struct _coverage_file_handler
 {
-	size_t number_of_samples;
-	size_t number_of_targets;
+	size_t n_samples;
+	size_t n_targets;
 	char ** sample_names;
 	unsigned int  ** coverage_data;
 } cnvs_file_handler;

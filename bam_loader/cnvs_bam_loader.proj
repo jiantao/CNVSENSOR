@@ -18,5 +18,6 @@ cnvs_bam_loader=~/work/CNVSENSOR/bam_loader {
 
 	test=src {
 		test.c
+		binary_reader.cpp
 	}
 }

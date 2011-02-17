@@ -9,4 +9,7 @@ size_t cnvs_read_file(const char * fn,					// Filename to be written
 					  char*** sample_names,			 	// array of sample names
 					  unsigned int *** coverage_data); 	// array of coverage data, target stored as row
 
+size_t cnvs_read_file(const char * fn, cnvs_file_handler * f_handle);
+
+		
 #endif

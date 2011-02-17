@@ -19,8 +19,8 @@ size_t cnvs_write_file(const char * fn, size_t n_samples, size_t n_targets, char
 	for(i=0; i<n_samples; i++)
 		totalWritten += fwrite(sample_names[i], sizeof(char), 			CNVS_SAMPLE_NAME_CHAR, 	fp);
 
-	for(i=0; i<n_targets; i++)
-		totalWritten += fwrite(coverage_data[i], sizeof(unsigned int), 	n_samples, 				fp);
+	for(i=0; i<n_samples; i++)
+		totalWritten += fwrite(coverage_data[i], sizeof(unsigned int), 	n_targets, 				fp);
 
 	fclose(fp);
 

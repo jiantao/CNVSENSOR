@@ -2,9 +2,9 @@ CC		=	gcc
 CXX		=	g++
 MAKE	=	make
 
-CFLAGS	 =	-c -Wall -Iinclude -g
+CFLAGS	 =	-c -Wall -Iinclude -I../bamtools/src -g
 CXXFLAGS = $(CFLAGS)
-LDFLAGS	 =	-g
+LDFLAGS	 =	-g -lz
 
 SOURCES	=	src/cnvs_file_writer.c \
 			src/cnvs_file_reader.c
@@ -19,16 +19,19 @@ OBJS_CMPL = $(addprefix $(OBJ_DIR)/, $(notdir $(OBJECTS)))
 
 .SUFFIXES: .c .cpp .o .h
 
-all: $(OBJECTS) 
+all: $(OBJECTS) bam_loader
+
+bam_loader: $(SOURCES) src/bam_loader.o
+	$(CXX) $(LDFLAGS) $(OBJS_CMPL) obj/bam_loader.o ../bamtools/lib/libbamtools.a -o bam_loader
 
 .c.o:
-	$(CC) $(CFLAGS) $< -o $(OBJ_DIR)/$(notdir $@)
+	$(CXX) $(CFLAGS) $< -o $(OBJ_DIR)/$(notdir $@)
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $< -o $(OBJ_DIR)/$(notdir $@)
 
-test: src/test.c
-	$(CC) $(LDFLAGS) -I include $(OBJS_CMPL) src/test.c -o test
+test: src/binary_reader.o
+	$(CXX) $(LDFLAGS) $(OBJS_CMPL) obj/binary_reader.o -o binary_reader
 
 clean:
-	rm -rf $(OBJ_DIR)/*.o cnv_sensor
+	rm -rf $(OBJ_DIR)/*.o bam_loader test binary_reader

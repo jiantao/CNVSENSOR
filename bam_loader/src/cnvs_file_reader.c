@@ -26,19 +26,31 @@ size_t cnvs_read_file(const char * fn,						// Filename to be written
 
 	for(i=0; i<*n_samples; i++)
 	{
-		(*sample_names)[i] = malloc(sizeof(char)*CNVS_SAMPLE_NAME_CHAR);
+		(*sample_names)[i] = (char *)malloc(sizeof(char)*CNVS_SAMPLE_NAME_CHAR);
 		totalRead += fread((*sample_names)[i], sizeof(char), CNVS_SAMPLE_NAME_CHAR, fp);
 	}
 
-	*coverage_data = (unsigned int **)malloc(sizeof(unsigned int *)*(*n_targets));
+	*coverage_data = (unsigned int **)malloc(sizeof(unsigned int *)*(*n_samples));
 
-	for(i=0; i<*n_targets; i++)
+	for(i=0; i<*n_samples; i++)
 	{
-		(*coverage_data)[i] = malloc(sizeof(unsigned int)*(*n_samples));
-		totalRead += fread((*coverage_data)[i], sizeof(unsigned int), *n_samples, fp);
+		(*coverage_data)[i] = (unsigned int *)malloc(sizeof(unsigned int)*(*n_targets));
+		totalRead += fread((*coverage_data)[i], sizeof(unsigned int), *n_targets, fp);
 	}
 
 
 
 	return totalRead;
 }
+
+size_t cnvs_read_file(const char * fn, cnvs_file_handler * f_handle)
+{
+	return 
+	cnvs_read_file(fn, 
+				   &(f_handle->n_samples),
+				   &(f_handle->n_targets),
+				   &(f_handle->sample_names),
+				   &(f_handle->coverage_data));
+
+}
+
