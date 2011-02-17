@@ -387,3 +387,29 @@ int CNV_MatrixScale(CNV_Matrix* matrix, double scale)
 
     return CNV_OK;
 }
+
+// get a matrix from the multiplication from two vectors
+// first vector is a column vector where the second one is a row vector
+int CNV_MatrixFromVectorsMultiply(CNV_Matrix* matrix, const CNV_Vector* vectorCol, const CNV_Vector* vectorRow)
+{
+    // no null pointers in the input data
+    assert(matrix != NULL && matrix->data != NULL);
+    assert(vectorCol != NULL && vectorCol->data != NULL);
+    assert(vectorRow != NULL && vectorRow->data != NULL);
+
+    // dimensions of vector must agree must agree with the result matrix
+    assert(vectorCol->size == matrix->rows && vectorRow->size == matrix->cols);
+
+    for (int i = 0; i != vectorCol->size; ++i)
+    {
+        unsigned colVecIndex = i * vectorCol->stride;
+        for (int j = 0; j != vectorRow->size; ++j)
+        {
+            unsigned rowVecIndex = j * vectorRow->stride;
+            CNV_MatrixSet(matrix, i, j, vectorCol->data[colVecIndex] * vectorRow->data[rowVecIndex]);
+        }
+    }
+
+    return CNV_OK;
+}
+

@@ -114,5 +114,9 @@ int CNV_MatrixAddConstant(CNV_Matrix* matrix, double factor);
 // times the elements of the matrix by a constant factor
 int CNV_MatrixScale(CNV_Matrix* matrix, double scale);
 
+// get a matrix from the multiplication from two vectors
+// first vector is a column vector where the second one is a row vector
+int CNV_MatrixFromVectorsMultiply(CNV_Matrix* matrix, const CNV_Vector* vectorCol, const CNV_Vector* vectorRow);
+
 #endif  /*CNV_MATRIX_H*/
 
