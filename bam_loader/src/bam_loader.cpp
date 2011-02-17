@@ -181,7 +181,16 @@ int main(int argc, char* argv[])
 		char *fn_bai = (char*)malloc(sizeof(char)*strlen(*argv)+6);
 		strcat(fn_bai, *argv);
 		strcat(fn_bai, ".bai");
-		reader.Open(*argv, fn_bai);
+		
+		
+		if(!reader.Open(*argv, fn_bai))
+		{
+			cerr<<"Error happened opening bam file: "<<*argv<<endl;
+			free(fn_bai);
+			argc--;
+			argv++;
+			continue;
+		}
 
 		if(!reader.IsOpen())
 		{
