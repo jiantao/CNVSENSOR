@@ -203,11 +203,15 @@ int main(int argc, char* argv[])
 		if(loglvl >= 3)
 			cerr<<"memory allocation completed"<<endl;
 
-		char *base_name = strrchr(fn_bam.c_str(), '/');
+		/*char *base_name = strrchr(fn_bam.c_str(), '/');
 		if(base_name != NULL)
 			strncpy(sampleNames[idx_sample], base_name + 1, CNVS_SAMPLE_NAME_CHAR);
 		else
 			strncpy(sampleNames[idx_sample], fn_bam.c_str(), CNVS_SAMPLE_NAME_CHAR);
+		*/
+
+		size_t basename_pos = fn_bam.find_last_of("/\\");
+		strncpy(sampleNames[idx_sample], fn_bam.c_str()+basename_pos, CNVS_SAMPLE_NAME_CHAR);
 
 		// Open the bam file
 		string fn_bai = fn_bam+".bai";
