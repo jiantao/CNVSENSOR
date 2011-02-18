@@ -203,11 +203,11 @@ int main(int argc, char* argv[])
 		if(loglvl >= 3)
 			cerr<<"memory allocation completed"<<endl;
 
-		char *base_name = strrchr(*argv, '/');
+		char *base_name = strrchr(fn_bam.c_str(), '/');
 		if(base_name != NULL)
 			strncpy(sampleNames[idx_sample], base_name + 1, CNVS_SAMPLE_NAME_CHAR);
 		else
-			strncpy(sampleNames[idx_sample], *argv, CNVS_SAMPLE_NAME_CHAR);
+			strncpy(sampleNames[idx_sample], fn_bam.c_str(), CNVS_SAMPLE_NAME_CHAR);
 
 		// Open the bam file
 		string fn_bai = fn_bam+".bai";
@@ -216,14 +216,14 @@ int main(int argc, char* argv[])
 
 		if(!reader->Open(fn_bam, fn_bai))
 		{
-			cerr<<"Error happened opening bam file: "<<*argv<<endl;
+			cerr<<"Error happened opening bam file: "<<fn_bam<<endl;
 			delete reader;
 			continue;
 		}
 
 		if(!reader->IsOpen())
 		{
-			cerr<<"Cannot open bamfile: "<<*argv<<endl;
+			cerr<<"Cannot open bamfile: "<<fn_bam<<endl;
 			delete reader;
 			continue;
 		}
