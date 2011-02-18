@@ -11,7 +11,7 @@
 #include "bam_loader_global.h"
 #include "cnvs_file_writer.h"
 
-int loglvl = 3;
+int loglvl = 0;
 
 using namespace std;
 
@@ -22,21 +22,23 @@ typedef struct _target
 	int32_t end;
 } t_Target;
 
-const char * fn_target_region;
-const char * fn_output;
-const char * program_name;
-const char * fn_bam_list;
+const char * fn_target_region = "";
+const char * fn_output = "";
+const char * program_name = "";
+const char * fn_bam_list = "";
 
 vector<string> lst_fn_bam;
 
-void usage()
+void usage(int errcode)
 {
 	cout<<"Usage : "<<program_name<<" <options> <bam filename1> <bam filename 2> ... "<<endl;
-	cout<<"\t Options: "<<endl;
-	cout<<"\t -b <bed filename>:\t [REQUIRED] Specify the target region description file name"<<endl;
-	cout<<"\t -o <out filename>:\t [REQUIRED] Specify the output filename in which the coverage is stored"<<endl;
-	cout<<"\t -l <bam list filename>: \t [OPTIONAL] Specify a file containing the filenames of bam files."<<endl;
-	cout<<"\t                         \t            Required if no bam file is given on the commandline"<<endl;
+	cout<<"\nOptions: "<<endl;
+	cout<<"\t -b <bed filename>  [REQUIRED] Specify the target region description file name"<<endl;
+	cout<<"\t -o <out filename>  [REQUIRED] Specify the output filename in which the coverage is stored"<<endl;
+	cout<<"\t -l <list filename> [OPTIONAL] Specify a file containing the filenames of bam files."<<endl;
+	cout<<"\t                               Required if no bam file is given on the commandline"<<endl;
+
+	exit(errcode);
 }
 
 int main(int argc, char* argv[])
@@ -68,7 +70,7 @@ int main(int argc, char* argv[])
 				break;
 			default:
 				cerr<<"Unrecognized option: -"<<(*argv)[1];
-				usage();
+				usage(0);
 		}
 
 		argc--;
@@ -78,15 +80,13 @@ int main(int argc, char* argv[])
 	if(strlen(fn_target_region) == 0)  
 	{
 		cerr<<"Missing -b argument!"<<endl<<endl;
-		usage();
-		exit(0);
+		usage(0);
 	}
 
 	if(strlen(fn_output) == 0)
 	{
 		cerr<<"Missing -o argument!"<<endl<<endl;
-		usage();
-		exit(0);
+		usage(0);
 	}
 
 	// Generate bam file list
@@ -120,8 +120,7 @@ int main(int argc, char* argv[])
 	if(lst_fn_bam.size() <= 0)
 	{
 		cerr<<"Missing bam file(s)!"<<endl<<endl;
-		usage();
-		exit(0);
+		usage(0);
 	}
 
 
@@ -136,7 +135,7 @@ int main(int argc, char* argv[])
 	f_target.open(fn_target_region, ifstream::in);
 
 	if(!f_target.good()) {
-		cerr<<"Unable to open target region file: "<<*argv<<endl;
+		cerr<<"Unable to open target region file: "<<fn_target_region<<endl;
 		exit(2);
 	}
 
@@ -172,12 +171,14 @@ int main(int argc, char* argv[])
 	}
 
 	BamTools::BamReader *reader;
-		
-	size_t idx_sample;	// Iterate through all the remaining parameters, treating as samples
+	
+	
+	// Iterate through all the remaining parameters, treating as samples
+	size_t idx_sample;		
 	for(idx_sample=0; idx_sample < lst_fn_bam.size(); idx_sample++)
 	{
 		if(loglvl >=2)
-			cerr<<"Processing "<<idx_sample<<"-th sample file: "<<*argv<<endl;
+			cerr<<"Processing "<<idx_sample<<"-th sample file: "<<lst_fn_bam[idx_sample]<<endl;
 
 		string fn_bam = lst_fn_bam[idx_sample];
 
@@ -191,10 +192,11 @@ int main(int argc, char* argv[])
 		coverageData[idx_sample] = (unsigned int *)malloc(sizeof(unsigned int)*n_targets);
 		if(coverageData[idx_sample] == NULL)
 		{
-			cerr<<"Can;t allocate space for coverage data cells at "<<idx_sample<<endl;
+			cerr<<"Can't allocate space for coverage data cells at "<<idx_sample<<endl;
 			exit(255);
 		}
 
+		// Initialize the coverage matrix to be 0
 		memset(coverageData[idx_sample], 0, sizeof(unsigned int)*n_targets);
 
 
@@ -256,12 +258,12 @@ int main(int argc, char* argv[])
 			cout<<"\rProcessing target "<<idx_target<<"/"<<Targets.size()<<std::flush;
 
 
-		}
+		} // for [Target Loop]
 
 		reader->Close();
 		delete reader;
 
-	}
+	}	// for [Sample Loop]
 
 	cout<<endl;
 
