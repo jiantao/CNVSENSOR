@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 #include <cstring>
 
@@ -24,6 +25,9 @@ typedef struct _target
 const char * fn_target_region;
 const char * fn_output;
 const char * program_name;
+const char * fn_bam_list;
+
+vector<string> lst_fn_bam;
 
 void usage()
 {
@@ -31,6 +35,8 @@ void usage()
 	cout<<"\t Options: "<<endl;
 	cout<<"\t -b <bed filename>:\t [REQUIRED] Specify the target region description file name"<<endl;
 	cout<<"\t -o <out filename>:\t [REQUIRED] Specify the output filename in which the coverage is stored"<<endl;
+	cout<<"\t -l <bam list filename>: \t [OPTIONAL] Specify a file containing the filenames of bam files."<<endl;
+	cout<<"\t                         \t            Required if no bam file is given on the commandline"<<endl;
 }
 
 int main(int argc, char* argv[])
@@ -40,12 +46,6 @@ int main(int argc, char* argv[])
 
 	argc--;
 	argv++;
-
-	if(argc < 3)
-	{
-		usage();
-		exit(0);
-	}
 
 	while(argc > 0 && (*argv)[0] == '-')
 	{
@@ -60,6 +60,11 @@ int main(int argc, char* argv[])
 				argc--;
 				argv++;
 				fn_target_region = *argv;
+				break;
+			case 'l':
+				argc--;
+				argv++;
+				fn_bam_list = *argv;
 				break;
 			default:
 				cerr<<"Unrecognized option: -"<<(*argv)[1];
@@ -84,7 +89,35 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
-	if(argc == 0)
+	// Generate bam file list
+	
+	if(strlen(fn_bam_list) != 0)
+	{
+		ifstream f_bam_list;
+		f_bam_list.open(fn_bam_list, ifstream::in);
+		if(!f_bam_list.good())
+			cerr<<"Unable to open the specified list file: "<<fn_bam_list<<endl;
+		else
+		{
+			string oneFn;
+			while(!f_bam_list.eof())
+			{
+				f_bam_list>>oneFn;
+				lst_fn_bam.push_back(oneFn);
+			}
+		}
+	}
+
+	while(argc > 0)
+	{
+		lst_fn_bam.push_back(*argv);
+		argc--;
+		argv++;
+	}
+
+
+
+	if(lst_fn_bam.size() <= 0)
 	{
 		cerr<<"Missing bam file(s)!"<<endl<<endl;
 		usage();
@@ -140,16 +173,13 @@ int main(int argc, char* argv[])
 
 	BamTools::BamReader *reader;
 		
-	while(argc > 0)	// Iterate through all the remaining parameters, treating as samples
+	size_t idx_sample;	// Iterate through all the remaining parameters, treating as samples
+	for(idx_sample=0; idx_sample < lst_fn_bam.size(); idx_sample++)
 	{
-
-
 		if(loglvl >=2)
-			cerr<<"Processing "<<n_samples - argc + 1<<" sample file: "<<*argv<<endl;
+			cerr<<"Processing "<<idx_sample<<"-th sample file: "<<*argv<<endl;
 
-		string bamFn(*argv);
-
-		size_t idx_sample = n_samples - argc;
+		string fn_bam = lst_fn_bam[idx_sample];
 
 		sampleNames[idx_sample] = (char *)malloc(sizeof(char)*CNVS_SAMPLE_NAME_CHAR+1);
 		if(sampleNames[idx_sample] == NULL)
@@ -178,18 +208,13 @@ int main(int argc, char* argv[])
 			strncpy(sampleNames[idx_sample], *argv, CNVS_SAMPLE_NAME_CHAR);
 
 		// Open the bam file
-		char *fn_bai = (char*)malloc(sizeof(char)*strlen(*argv)+6);
-		strcpy(fn_bai, *argv);
-		strcat(fn_bai, ".bai");
-		
+		string fn_bai = fn_bam+".bai";
+
 		reader = new BamTools::BamReader();
 
-		if(!reader->Open(*argv, fn_bai))
+		if(!reader->Open(fn_bam, fn_bai))
 		{
 			cerr<<"Error happened opening bam file: "<<*argv<<endl;
-			free(fn_bai);
-			argc--;
-			argv++;
 			delete reader;
 			continue;
 		}
@@ -197,9 +222,6 @@ int main(int argc, char* argv[])
 		if(!reader->IsOpen())
 		{
 			cerr<<"Cannot open bamfile: "<<*argv<<endl;
-			free(fn_bai);
-			argc--;
-			argv++;
 			delete reader;
 			continue;
 		}
@@ -207,15 +229,10 @@ int main(int argc, char* argv[])
 		if(!reader->HasIndex())
 		{
 			cerr<<"Cannot open bai file: "<<fn_bai<<endl;
-			free(fn_bai);
-			argc--;
-			argv++;
 			reader->Close();
 			delete reader;
 			continue;
 		}
-
-		free(fn_bai);
 
 		size_t idx_target;
 		for(idx_target=0; idx_target<Targets.size(); idx_target++)
@@ -244,8 +261,6 @@ int main(int argc, char* argv[])
 		reader->Close();
 		delete reader;
 
-		argc--;
-		argv++;
 	}
 
 	cout<<endl;

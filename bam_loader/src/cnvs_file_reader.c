@@ -8,7 +8,7 @@ size_t cnvs_read_file(const char * fn,						// Filename to be written
 					  size_t* n_samples, 					// number of samples
 					  size_t* n_targets, 					// number of targets
 					  char*** sample_names,	 	// array of sample names
-					  unsigned int *** coverage_data)	 	// array of coverage data, target stored as row
+					  unsigned int ** coverage_data)	 	// array of coverage data, target stored as row
 {
 	size_t totalRead = 0;
 
@@ -22,7 +22,7 @@ size_t cnvs_read_file(const char * fn,						// Filename to be written
 	totalRead += fread(n_targets, sizeof(size_t), 1, fp);
 
 	*sample_names = (char **)malloc(sizeof(char*)*(*n_samples));
-	size_t i;
+	size_t i, j;
 
 	for(i=0; i<*n_samples; i++)
 	{
@@ -30,12 +30,27 @@ size_t cnvs_read_file(const char * fn,						// Filename to be written
 		totalRead += fread((*sample_names)[i], sizeof(char), CNVS_SAMPLE_NAME_CHAR, fp);
 	}
 
-	*coverage_data = (unsigned int **)malloc(sizeof(unsigned int *)*(*n_samples));
+	//*coverage_data = (unsigned int **)malloc(sizeof(unsigned int *)*(*n_samples));
 
-	for(i=0; i<*n_samples; i++)
+	/*for(i=0; i<*n_samples; i++)
 	{
 		(*coverage_data)[i] = (unsigned int *)malloc(sizeof(unsigned int)*(*n_targets));
 		totalRead += fread((*coverage_data)[i], sizeof(unsigned int), *n_targets, fp);
+	}*/
+
+	*coverage_data = (unsigned int *)malloc(sizeof(unsigned int)*(*n_samples)*(*n_targets));
+	if(*coverage_data == NULL) 
+	{
+		fprintf(stderr, "Unable to allocate memory space\n");
+		exit(255);
+	}
+
+	for(i=0; i<*n_samples; i++)
+	{
+		for(j=0; j<*n_targets; j++)
+		{
+			totalRead += fread((*coverage_data)+i+j*(*n_samples), sizeof(unsigned int), 1, fp);
+		}
 	}
 
 
