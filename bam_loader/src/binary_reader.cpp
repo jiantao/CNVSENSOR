@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	{
 		for(size_t idx_sample=0; idx_sample < fn_handle.n_samples; idx_sample++)
 		{
-			cout<<"\t"<<fn_handle.coverage_data[idx_sample][idx_target];
+			cout<<"\t"<<fn_handle.coverage_data[idx_sample + idx_target * fn_handle.n_samples];
 		}
 		cout<<endl;
 	}
