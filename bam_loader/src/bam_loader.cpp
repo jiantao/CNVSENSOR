@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
 	// Iterate through all bam files
 
-	size_t n_samples = argc;
+	size_t n_samples = lst_fn_bam.size();
 	size_t n_targets = Targets.size();
 
 	unsigned int **coverageData = (unsigned int **)malloc(sizeof(unsigned int *)*n_samples);
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 	
 	// Iterate through all the remaining parameters, treating as samples
 	size_t idx_sample;		
-	for(idx_sample=0; idx_sample < lst_fn_bam.size(); idx_sample++)
+	for(idx_sample=0; idx_sample < n_samples; idx_sample++)
 	{
 		if(loglvl >=2)
 			cerr<<"Processing "<<idx_sample<<"-th sample file: "<<lst_fn_bam[idx_sample]<<endl;
@@ -202,13 +202,6 @@ int main(int argc, char* argv[])
 
 		if(loglvl >= 3)
 			cerr<<"memory allocation completed"<<endl;
-
-		/*char *base_name = strrchr(fn_bam.c_str(), '/');
-		if(base_name != NULL)
-			strncpy(sampleNames[idx_sample], base_name + 1, CNVS_SAMPLE_NAME_CHAR);
-		else
-			strncpy(sampleNames[idx_sample], fn_bam.c_str(), CNVS_SAMPLE_NAME_CHAR);
-		*/
 
 		size_t basename_pos = fn_bam.find_last_of("/\\");
 		strncpy(sampleNames[idx_sample], fn_bam.c_str()+basename_pos, CNVS_SAMPLE_NAME_CHAR);
@@ -241,7 +234,7 @@ int main(int argc, char* argv[])
 		}
 
 		size_t idx_target;
-		for(idx_target=0; idx_target<Targets.size(); idx_target++)
+		for(idx_target=0; idx_target<n_targets; idx_target++)
 		{
 			t_Target currentTarget = Targets[idx_target];
 			int refID = reader->GetReferenceID(currentTarget.name);
