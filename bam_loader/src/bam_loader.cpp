@@ -102,8 +102,10 @@ int main(int argc, char* argv[])
 			string oneFn;
 			while(!f_bam_list.eof())
 			{
+				oneFn = "";
 				f_bam_list>>oneFn;
-				lst_fn_bam.push_back(oneFn);
+				if(oneFn.length() > 4)
+					lst_fn_bam.push_back(oneFn);
 			}
 		}
 	}
@@ -151,6 +153,7 @@ int main(int argc, char* argv[])
 
 	if(loglvl >= 2)
 		cerr<<"Total number of targets loaded: "<<Targets.size()<<endl;
+
 
 	// Iterate through all bam files
 
@@ -204,8 +207,11 @@ int main(int argc, char* argv[])
 			cerr<<"memory allocation completed"<<endl;
 
 		size_t basename_pos = fn_bam.find_last_of("/\\");
-		strncpy(sampleNames[idx_sample], fn_bam.c_str()+basename_pos, CNVS_SAMPLE_NAME_CHAR);
-
+		if(basename_pos != fn_bam.npos)
+			strncpy(sampleNames[idx_sample], fn_bam.c_str()+basename_pos+1, CNVS_SAMPLE_NAME_CHAR);
+		else
+			strncpy(sampleNames[idx_sample], fn_bam.c_str(), CNVS_SAMPLE_NAME_CHAR);
+		
 		// Open the bam file
 		string fn_bai = fn_bam+".bai";
 
