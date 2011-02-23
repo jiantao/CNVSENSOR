@@ -18,12 +18,12 @@ int main(int argc, char* argv[])
 
 	cnvs_read_file(argv[1], &fn_handle);
 
-	cout<<"Number of Sample: "<<fn_handle.n_samples<<endl;
-	cout<<"Number of Targets: "<<fn_handle.n_targets<<endl;
 
 	for(size_t idx_sample = 0; idx_sample < fn_handle.n_samples; idx_sample++)
 	{
-		cout<<"Sample Name "<<idx_sample<<":  "<<fn_handle.sample_names[idx_sample]<<endl;
+		cout<<fn_handle.sample_names[idx_sample];
+		if(idx_sample != fn_handle.n_samples-1)
+			cout<<",";
 	}
 
 	cout<<endl;
@@ -32,7 +32,9 @@ int main(int argc, char* argv[])
 	{
 		for(size_t idx_sample=0; idx_sample < fn_handle.n_samples; idx_sample++)
 		{
-			cout<<"\t"<<fn_handle.coverage_data[idx_sample + idx_target * fn_handle.n_samples];
+			cout<<fn_handle.coverage_data[idx_sample + idx_target * fn_handle.n_samples];
+			if(idx_sample != fn_handle.n_samples)
+				cout<<",";
 		}
 		cout<<endl;
 	}

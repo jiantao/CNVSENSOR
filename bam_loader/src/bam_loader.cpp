@@ -11,7 +11,7 @@
 #include "bam_loader_global.h"
 #include "cnvs_file_writer.h"
 
-int loglvl = 0;
+int loglvl = 3;
 
 using namespace std;
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 		t_Target newTarget;
 		f_target>>newTarget.name>>newTarget.start>>newTarget.end;
 		if(newTarget.name.length() < 1)
-			break;
+			continue;
 		newTarget.end--;
 		Targets.push_back(newTarget);
 	}
@@ -154,7 +154,11 @@ int main(int argc, char* argv[])
 	if(loglvl >= 2)
 		cerr<<"Total number of targets loaded: "<<Targets.size()<<endl;
 
-
+	if(Targets.size() < 1)
+	{
+		cerr<<"No target region is loaded!"<<endl;
+		exit(1);
+	}
 	// Iterate through all bam files
 
 	size_t n_samples = lst_fn_bam.size();
@@ -258,7 +262,7 @@ int main(int argc, char* argv[])
 					coverageData[idx_sample][idx_target]++;
 			}
 
-			cout<<"\rProcessing target "<<idx_target<<"/"<<Targets.size()<<std::flush;
+			cout<<"\rProcessing sample "<<idx_sample+1<<"/"<<n_samples<<", target "<<idx_target<<"/"<<Targets.size()<<std::flush;
 
 
 		} // for [Target Loop]
