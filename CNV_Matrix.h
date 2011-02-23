@@ -41,10 +41,19 @@ typedef struct
     cnv_size_t stride;
 }CNV_Matrix, CNV_MatrixView;
 
+// operation direction of a matrix
+typedef short CNV_Direction;
+
+// mode of deleting rows or columns from a matrix
+typedef short CNV_DelMode;
+
 // constants that control the function-operation direction on a matrix
 #define ROW_DIRECTION 0
 #define COL_DIRECTION 1
 
+// two modes for deleting rows or columns from a matrix
+#define LAZY_MODE  0
+#define COVER_MODE 1
 
 //===============================
 // Constructors and Destructors
@@ -77,8 +86,10 @@ void CNV_MatrixPrint(const CNV_Matrix* matrix, FILE* output);
 double CNV_MatrixGet(const CNV_Matrix* matrix, cnv_size_t i, cnv_size_t j);
 
 // calculate the median of every row or every column of a matrix 
-int CNV_MatrixGetMedian(CNV_Matrix* matrix, CNV_Vector* medians, short direction);
+int CNV_MatrixGetMedian(CNV_Matrix* matrix, CNV_Vector* medians, CNV_Direction direction);
 
+// do the linear fit for each row or column in the matrix
+int CNV_MatrixLinearFit(CNV_Matrix* matrix, const CNV_Vector* obs, CNV_Vector* coeffs, CNV_Vector* rSquares, CNV_Direction direction);
 
 //===============================
 // Non-constant methods
@@ -95,6 +106,12 @@ int CNV_MatrixGetRowView(CNV_Matrix* matrix, CNV_VectorView* rowView, cnv_size_t
 
 // Get a view of a certain column of a matrix
 int CNV_MatrixGetColView(CNV_Matrix* matrix, CNV_VectorView* colView, cnv_size_t colNum);
+
+// swap two rows in a matrix
+void CNV_MatrixSwapRows(CNV_Matrix* matrix, cnv_size_t rowSwapFrom, cnv_size_t rowSwapTo);
+
+// swap two rows in a matrix
+void CNV_MatrixSwapCols(CNV_Matrix* matrix, cnv_size_t colSwapFrom, cnv_size_t colSwapTo);
 
 // add the elements of a matrix to the elements to another matrix
 int CNV_MatrixAdd(CNV_Matrix* matrix, const CNV_Matrix* otherMatrix);
@@ -117,6 +134,9 @@ int CNV_MatrixScale(CNV_Matrix* matrix, double scale);
 // get a matrix from the multiplication from two vectors
 // first vector is a column vector where the second one is a row vector
 int CNV_MatrixFromVectorsMultiply(CNV_Matrix* matrix, const CNV_Vector* vectorCol, const CNV_Vector* vectorRow);
+
+// delete a certain row or column from a matrix (replace the to-be-deleted rows or columns with those rows or columns at the end of the matrix)
+int CNV_MatrixDelVector(CNV_Matrix* matrix, cnv_size_t* toBeDel, cnv_size_t delNum, cnv_size_t* indexMap, cnv_size_t* indexMapNum, CNV_Direction direction);
 
 #endif  /*CNV_MATRIX_H*/
 
