@@ -3,3 +3,16 @@
 ==============
 
 Readme Placeholder
+
+
+
+bam_loader
+----------
+
+  This submodule is used to calculate the read coverage across multiple samples and targets
+regions. The output, which is a binary file representing the data aformentioned, will
+serve as the input of CNV SENSOR for down-stream calculation to detect
+structure variation. The usage can be found by executing the program
+'bam_loader'. Basically this program takes in a bed file and a bunch of bam
+files to generate the binary file containing the coverage data.
+

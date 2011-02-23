@@ -1,0 +1,23 @@
+cnvs_bam_loader=~/work/CNVSENSOR/bam_loader {
+	Makefile
+	
+	includes=include {
+		bam_loader_global.h
+		cnvs_file_writer.h
+		cnvs_file_reader.h
+	}
+
+	src=src {
+		cnvs_file_writer.c
+		cnvs_file_reader.c
+	}
+
+	bam_loader=src {
+		bam_loader.cpp
+	}
+
+	test=src {
+		test.c
+		binary_reader.cpp
+	}
+}
