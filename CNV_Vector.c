@@ -18,6 +18,9 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <float.h>
+#include <stdarg.h>
+#include <gsl/gsl_fit.h>
 #include "CNV_Vector.h"
 #include "CNV_Error.h"
 
@@ -128,7 +131,7 @@ void CNV_VectorPrint(const CNV_Vector* vector, FILE* output)
 }
 
 
-// calculate the median value of all the elements in a vector
+// calculate the median value of all the elements in a vector (ignore NAN)
 // Torben's method (without changing the element order in the vector)
 double CNV_VectorGetMedian(const CNV_Vector* vector)
 {
@@ -147,7 +150,11 @@ double CNV_VectorGetMedian(const CNV_Vector* vector)
     // the position that is after the last element in the vector
     unsigned stopPos = vector->stride * vector->size;
 
-    unsigned breakPt = (vector->size + 1) / 2;
+    // real size = vector size - number of NAN
+    unsigned realSize = vector->size;
+
+    // first index of the element whose value is not NAN
+    unsigned firstNotNAN = 0;
 
     // minimum value in search region
     double min; 
@@ -165,17 +172,38 @@ double CNV_VectorGetMedian(const CNV_Vector* vector)
     double mingtguess;
 
     // find the max and min values in the vector
-    min = vector->data[0];
-    max = vector->data[0];
-    for (unsigned i = vector->stride; i != stopPos; i += vector->stride) 
+    unsigned i;
+    for (i = 0; i != stopPos; i += vector->stride)
+    {
+        min = vector->data[i];
+        max = vector->data[i];
+
+        // min and max can not be NAN
+        if (!isnan(min))
+            break;
+        else
+            --realSize;
+    }
+
+    // get the position of first element whose value is not NAN
+    firstNotNAN = i;
+
+    for (; i != stopPos; i += vector->stride) 
     {
         if (vector->data[i] < min) 
             min = vector->data[i];
 
         if (vector->data[i] > max) 
             max = vector->data[i];
+
+        if (isnan(vector->data[i]))
+            --realSize;
     }
 
+    // the real size cannot be 0 or greater than the vector size
+    assert(realSize > 0 && realSize <= vector->size);
+
+    unsigned breakPt = (realSize + 1) / 2;
     while (TRUE) 
     {
         guess = (min + max) / 2;
@@ -186,7 +214,7 @@ double CNV_VectorGetMedian(const CNV_Vector* vector)
         greater = 0; 
         equal = 0;
 
-        for (unsigned i = 0; i != stopPos; i += vector->stride) 
+        for (unsigned i = firstNotNAN; i != stopPos; i += vector->stride) 
         {
             if (vector->data[i] < guess) 
             {
@@ -200,8 +228,10 @@ double CNV_VectorGetMedian(const CNV_Vector* vector)
                 if (vector->data[i] < mingtguess) 
                     mingtguess = vector->data[i];
             } 
-            else 
+            else if (vector->data[i] == guess)
+            {
                 ++equal;
+            }
         }
 
         if (less <= breakPt && greater <= breakPt) 
@@ -225,6 +255,118 @@ double CNV_VectorGetMedian(const CNV_Vector* vector)
         return mingtguess;
     else
         return maxltguess;
+}
+
+// calculate the k-th smallest value in the vector
+int CNV_VectorGetKthSmallest(const CNV_Vector* vector, double* temp, double* results, cnv_size_t resultsLength, ...)
+{
+    assert(vector != NULL && vector->data != NULL);
+    assert(temp != NULL && results != NULL && resultsLength % 2 == 0);
+
+    // how many elements greater than guess
+    const cnv_size_t vectorSize = vector->size;
+    const cnv_size_t stopPos    = vector->size * vector->stride;
+
+    // max element in the vector
+    double max = DBL_MIN;
+    // copy all the elements in vector to a temporary array
+    for (unsigned i = 0, j = 0; i != stopPos; i += vector->stride, ++j)
+    {
+        temp[j] = vector->data[i];
+        if (temp[j] > max)
+            max = temp[j];
+    }
+
+    va_list varArg;
+    va_start(varArg, resultsLength);
+    
+    unsigned argNum = resultsLength / 2;
+    for (unsigned count = 0; count != argNum; ++count)
+    {
+        cnv_size_t k = va_arg(varArg, cnv_size_t);
+
+        cnv_size_t leftBound = 0;
+        cnv_size_t rightBound = vectorSize - 1;
+        while (leftBound < rightBound)
+        {
+            double swapTemp = 0.0;
+            double guess = temp[k];
+            cnv_size_t i = leftBound;
+            cnv_size_t j = rightBound;
+            do
+            {
+                while (temp[i] < guess)
+                    ++i;
+
+                while (temp[j] > guess)
+                    --j;
+
+                if (i <= j)
+                {
+                    // CNV_SWAP_NUM(temp[i], temp[j], swapTemp);
+                    swapTemp = temp[i];
+                    temp[i] = temp[j];
+                    temp[j] = swapTemp;
+                    ++i;
+                    --j;
+                }
+            } while (i <= j);
+
+            if (j < k) 
+                leftBound = i;
+
+            if (k < i) 
+                rightBound = j;
+        }
+
+        results[2 * count] = temp[k];
+
+        double kPlusOne = max;
+        for (unsigned i = k + 1; i != vectorSize; ++i)
+        {
+            if (temp[i] < kPlusOne)
+                kPlusOne = temp[i];
+        }
+
+        results[2 * count + 1] = kPlusOne;
+    }
+
+    va_end(varArg);
+    return CNV_OK;
+}
+
+// compute the the best-fit linear regression coefficient of the model y = c1 * x and the r squared value of the fit
+int CNV_VectorLinearFit(const CNV_Vector* x, const CNV_Vector* y, double* coeff, double* rSquare)
+{
+    assert(x != NULL && x->data != NULL);
+    assert(y != NULL && y->data != NULL);
+    assert(x->size == y->size);
+
+    // covariance value of the coefficiency
+    double cov = 0.0f;
+    // sum squares of regression
+    double sse = 0.0f;
+    // least-squares fit with gsl library function
+    gsl_fit_mul(x->data, x->stride, y->data, y->stride, x->size, coeff, &cov, &sse);
+
+    double meanY = 0.0f;
+    double sumSquareY = 0.0f;
+    cnv_size_t stopPosY = y->stride * y->size;
+    for (unsigned i = 0; i != stopPosY; i += y->stride)
+    {
+        meanY += y->data[i];
+        sumSquareY += CNV_SQUARE(y->data[i]);
+    }
+
+    // mean value of y vector
+    meanY = meanY / y->size;
+    //total sum of squares (sum of squares about the mean)
+    double sst = sumSquareY - (y->size * CNV_SQUARE(meanY));
+    
+    // r square (goodness of fit)
+    *rSquare = 1 - (sse / sst);
+
+    return CNV_OK;
 }
 
 

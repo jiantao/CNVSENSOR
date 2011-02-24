@@ -19,18 +19,9 @@
 #ifndef  CNV_TYPES_H
 #define  CNV_TYPES_H
 
-#ifndef WIN32
 #include <stdint.h>
-#endif
+#include <math.h>
 
-// =================================
-// Platform specific variable sizes
-// =================================
-
-#ifdef WIN32
-typedef signed long long    int64_t;
-typedef unsigned long long uint64_t;
-#endif
 
 // ===========================
 // Platform specific file I/O 
@@ -47,7 +38,8 @@ typedef unsigned long long uint64_t;
 typedef uint64_t cnv_size_t;
 
 // boolean type
-typedef short Bool;
+typedef short CNV_Bool;
+
 
 // boolean constants
 #define FALSE 0
@@ -56,5 +48,17 @@ typedef short Bool;
 // function return status
 #define CNV_OK   0
 #define CNV_ERR -1
+
+// swap two numbers
+#define CNV_SWAP_NUM(num1, num2, temp) \
+    do                   \
+    {                    \
+        (temp) = (num1); \
+        (num1) = (num2); \
+        (num2) = (temp); \
+    }while(0)        
+
+// calculate square of a number 
+#define CNV_SQUARE(x) ((x) * (x))
 
 #endif  /*CNV_TYPES_H*/
