@@ -27,17 +27,37 @@ const char * fn_output = "";
 const char * program_name = "";
 const char * fn_bam_list = "";
 
+
+
+enum _algorithms
+{
+	ALGO_READ_COV,
+	ALGO_BASE_COV
+} algorithm;
+
 vector<string> lst_fn_bam;
+
+int compare_cnvs_cov_t(const void * d1, const void * d2)
+{
+	return *(cnvs_cov_t *)d1 - *(cnvs_cov_t *)d2;
+}
+
+int32_t int32_min(int32_t size1, int32_t size2)
+{
+	return size1<size2?size1:size2;
+}
 
 void usage(int errcode)
 {
 	cout<<"Usage : "<<program_name<<" <options> <bam filename1> <bam filename 2> ... "<<endl;
 	cout<<"\nOptions: "<<endl;
-	cout<<"\t -b <bed filename>  [REQUIRED] Specify the target region description file name"<<endl;
-	cout<<"\t -o <out filename>  [REQUIRED] Specify the output filename in which the coverage is stored"<<endl;
+	cout<<"\t -b <bed filename>  [REQUIRED] Specify the target region description file name."<<endl;
+	cout<<"\t -o <out filename>  [REQUIRED] Specify the output filename in which the coverage is stored."<<endl;
 	cout<<"\t -l <list filename> [OPTIONAL] Specify a file containing the filenames of bam files."<<endl;
-	cout<<"\t                               Required if no bam file is given on the commandline"<<endl;
-
+	cout<<"\t                               Required if no bam file is given on the commandline."<<endl;
+	cout<<"\t -B                 [OPTIONAL] Use base coverage instead of read coverage."<<endl;
+	
+	
 	exit(errcode);
 }
 
@@ -48,6 +68,8 @@ int main(int argc, char* argv[])
 
 	argc--;
 	argv++;
+
+	algorithm = ALGO_READ_COV;
 
 	while(argc > 0 && (*argv)[0] == '-')
 	{
@@ -67,6 +89,9 @@ int main(int argc, char* argv[])
 				argc--;
 				argv++;
 				fn_bam_list = *argv;
+				break;
+			case 'B':
+				algorithm = ALGO_BASE_COV;
 				break;
 			default:
 				cerr<<"Unrecognized option: -"<<(*argv)[1];
@@ -256,6 +281,20 @@ int main(int argc, char* argv[])
 			}
 
 			BamTools::BamAlignment a;
+			
+			cnvs_cov_t * b_covs = NULL;
+			if(algorithm == ALGO_BASE_COV)
+			{
+				b_covs = (cnvs_cov_t *)malloc(sizeof(cnvs_cov_t)*(currentTarget.end - currentTarget.start + 1));
+				if(b_covs == NULL)
+				{
+					cerr<<"Unable to allocate memory for base coverage with in target "<<idx_target<<endl;
+					exit(255);
+				}
+
+				memset(b_covs, 0, sizeof(cnvs_cov_t)*(currentTarget.end - currentTarget.start + 1));
+			}
+
 			while(reader->GetNextAlignmentCore(a))
 			{
 
@@ -265,10 +304,37 @@ int main(int argc, char* argv[])
 				   a.IsFailedQC() )
 					continue;
 
+				if(a.Position < currentTarget.start)
+					continue;
 
+				switch(algorithm)
+				{
+					case ALGO_READ_COV:
+						coverageData[idx_sample][idx_target]++;
+						break;
+					case ALGO_BASE_COV:
+						int32_t p_pos;
+						
+						for(p_pos = a.Position; p_pos < int32_min(a.Position + a.Length, currentTarget.end+1); p_pos++)
+							b_covs[p_pos - currentTarget.start]++;
+						break;
+					default:
+						break;
+				}
+			}
 
-				if(a.Position >= currentTarget.start)
-					coverageData[idx_sample][idx_target]++;
+			if(algorithm == ALGO_BASE_COV)
+			{
+				size_t length = currentTarget.end - currentTarget.start + 1;
+			
+				qsort(b_covs, length, sizeof(cnvs_cov_t), compare_cnvs_cov_t);
+					
+				if(length % 2 != 0)
+					coverageData[idx_sample][idx_target] = b_covs[length / 2 + 1];
+				else
+					coverageData[idx_sample][idx_target] = ( b_covs[length / 2 ] + b_covs[length / 2 + 1] ) / 2;
+			
+				free(b_covs);
 			}
 
 			cout<<"\rProcessing sample "<<idx_sample+1<<"/"<<n_samples<<", target "<<idx_target<<"/"<<Targets.size()<<std::flush;
