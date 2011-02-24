@@ -6,7 +6,7 @@
 size_t cnvs_write_file(const char * fn,				// Filename to be written 
 				    size_t n_samples, 				// number of samples
 					size_t n_targets, 				// number of targets
-					char** sample_names, 	// array of sample names
-					unsigned int ** coverage_data); // array of coverage data, target stored as row
+					char** sample_names, 			// array of sample names
+					cnvs_cov_t ** coverage_data); 	// array of coverage data, target stored as row
 
 #endif

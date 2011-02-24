@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 
+typedef double cnvs_cov_t;
+
 typedef struct _coverage_file_handler
 {
 	size_t n_samples;
@@ -15,7 +17,7 @@ typedef struct _coverage_file_handler
 										// represent the i-th sample name, 
 										// i goes from 0 to n_samples - 1
 
-	unsigned int  * coverage_data;		// The flat data structure storing the coverage
+	cnvs_cov_t  * coverage_data;		// The flat data structure storing the coverage
 										// coverage_data [ i + j * n_samples ] represent
 										// the coverage of i-th sample and j-th target
 										// i goes from 0 to n_samples

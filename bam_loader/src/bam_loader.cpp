@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 	size_t n_samples = lst_fn_bam.size();
 	size_t n_targets = Targets.size();
 
-	unsigned int **coverageData = (unsigned int **)malloc(sizeof(unsigned int *)*n_samples);
+	cnvs_cov_t **coverageData = (cnvs_cov_t **)malloc(sizeof(cnvs_cov_t *)*n_samples);
 	if(coverageData == NULL)
 	{
 		cerr<<"Can't allocate space for coverage matrix"<<endl;
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
 			exit(255);
 		}
 
-		coverageData[idx_sample] = (unsigned int *)malloc(sizeof(unsigned int)*n_targets);
+		coverageData[idx_sample] = (cnvs_cov_t *)malloc(sizeof(cnvs_cov_t)*n_targets);
 		if(coverageData[idx_sample] == NULL)
 		{
 			cerr<<"Can't allocate space for coverage data cells at "<<idx_sample<<endl;
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
 		}
 
 		// Initialize the coverage matrix to be 0
-		memset(coverageData[idx_sample], 0, sizeof(unsigned int)*n_targets);
+		memset(coverageData[idx_sample], 0, sizeof(cnvs_cov_t)*n_targets);
 
 
 		if(loglvl >= 3)
