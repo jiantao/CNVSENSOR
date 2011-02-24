@@ -27,7 +27,7 @@ const char * fn_output = "";
 const char * program_name = "";
 const char * fn_bam_list = "";
 
-
+uint16_t MapQualityThreshold = 0;
 
 enum _algorithms
 {
@@ -92,6 +92,11 @@ int main(int argc, char* argv[])
 				break;
 			case 'B':
 				algorithm = ALGO_BASE_COV;
+				break;
+			case 'Q':
+				argc--;
+				argv++;
+				MapQualityThreshold = atoi(*argv);
 				break;
 			default:
 				cerr<<"Unrecognized option: -"<<(*argv)[1];
@@ -300,9 +305,10 @@ int main(int argc, char* argv[])
 
 				// Flag-based filteration
 
-				if(a.IsDuplicate() ||
-				   a.IsFailedQC() )
-					continue;
+				if(a.IsDuplicate() ||					// Duplicate
+				   a.IsFailedQC() ||					// Fail QC
+				   a.MapQuality < MapQualityThreshold	// Low Quality
+				  )	continue;
 
 				if(a.Position < currentTarget.start)
 					continue;
