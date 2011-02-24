@@ -258,6 +258,15 @@ int main(int argc, char* argv[])
 			BamTools::BamAlignment a;
 			while(reader->GetNextAlignmentCore(a))
 			{
+
+				// Flag-based filteration
+
+				if(a.IsDuplicate() ||
+				   a.IsFailedQC() )
+					continue;
+
+
+
 				if(a.Position >= currentTarget.start)
 					coverageData[idx_sample][idx_target]++;
 			}
