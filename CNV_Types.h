@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <math.h>
+#include <argtable2.h>
 
 
 // ===========================
@@ -35,11 +36,20 @@
 // =======================
 
 // size type
-typedef uint64_t cnv_size_t;
+typedef size_t cnv_size_t;
 
 // boolean type
-typedef short CNV_Bool;
+typedef short Bool;
 
+// type define for argtable structures
+typedef struct arg_int  arg_int;
+typedef struct arg_dbl  arg_dbl;
+typedef struct arg_lit  arg_lit;
+typedef struct arg_str  arg_str;
+typedef struct arg_rex  arg_rex;
+typedef struct arg_file arg_file;
+typedef struct arg_date arg_date;
+typedef struct arg_end  arg_finish;
 
 // boolean constants
 #define FALSE 0
