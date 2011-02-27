@@ -20,6 +20,7 @@
 #define  CNV_VECTOR_H
 
 #include <stdio.h>
+
 #include "CNV_Types.h"
 
 
@@ -27,14 +28,14 @@
 // Type and constant definition
 //===============================
 
+#define CNV_VECTOR_GET_VALUE(vector, i) ((vector->data)[(vector->stride) * (i)])
+
 typedef struct
 {
     double* data;
     cnv_size_t size;
     cnv_size_t stride;
 }CNV_Vector, CNV_VectorView;
-
-#define CNV_VECTOR_GET_VALUE(vector, i) ((vector->data)[(vector->stride) * (i)])
 
 
 //===============================

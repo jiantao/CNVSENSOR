@@ -34,14 +34,6 @@ cnv_size_t CNV_ReadBinary(const char * fn,	// Filename to be read
         totalRead += fread((*sample_names)[i], sizeof(char), CNVS_SAMPLE_NAME_CHAR, fp);
     }
 
-    //*coverage_data = (unsigned int **)malloc(sizeof(unsigned int *)*(*n_samples));
-
-    /*for(i=0; i<*n_samples; i++)
-      {
-      (*coverage_data)[i] = (unsigned int *)malloc(sizeof(unsigned int)*(*n_targets));
-      totalRead += fread((*coverage_data)[i], sizeof(unsigned int), *n_targets, fp);
-      }*/
-
     *coverage_data = (double*) malloc(sizeof(double) * (*n_samples) * (*n_targets));
     if(*coverage_data == NULL) 
         CNV_ErrSys("ERROR: Not enough memory for coverage data.")
@@ -59,8 +51,7 @@ cnv_size_t CNV_ReadBinary(const char * fn,	// Filename to be read
 
 cnv_size_t CNV_LoadBinary(const char* fn, cnv_file_handler* f_handle)
 {
-    return 
-        CNV_ReadBinary(fn, 
+    return CNV_ReadBinary(fn, 
                 &(f_handle->n_samples),
                 &(f_handle->n_targets),
                 &(f_handle->sample_names),
