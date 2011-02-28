@@ -73,6 +73,6 @@ int CNV_SizeListPush(CNV_SizeList* sizeList, CNV_SizeListNode* newNode);
 int CNV_SizeListUnshift(CNV_SizeList* sizeList, CNV_SizeListNode* newNode);
 
 // delete the elements in a size data list according to the indecies in another size data list
-int CNV_SizeListDelFromList(CNV_SizeList* sizeList, const CNV_SizeList* delIndecies, CNV_SizeList* deletedElements);
+int CNV_SizeListDelFromList(CNV_SizeList* sizeList, const CNV_SizeList* delIndices, CNV_SizeList* deletedElements);
 
 #endif  /*CNV_LIST_H*/

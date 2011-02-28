@@ -128,14 +128,14 @@ int CNV_SizeListUnshift(CNV_SizeList* sizeList, CNV_SizeListNode* newNode)
     return CNV_OK;
 }
 
-// delete the elements in a size data list according to the indecies in another size data list
-int CNV_SizeListDelFromList(CNV_SizeList* sizeList, const CNV_SizeList* delIndecies, CNV_SizeList* deletedElements)
+// delete the elements in a size data list according to the indices in another size data list
+int CNV_SizeListDelFromList(CNV_SizeList* sizeList, const CNV_SizeList* delIndices, CNV_SizeList* deletedElements)
 {
-    assert(sizeList != NULL && sizeList->count > 0 && delIndecies != NULL && delIndecies->count > 0);
+    assert(sizeList != NULL && sizeList->count > 0 && delIndices != NULL && delIndices->count > 0);
     
     size_t currIndex = sizeList->count - 1;            // current index in the size data list
     CNV_SizeListNode* currNode = sizeList->last;       // current node with index in currIndex variable
-    CNV_SizeListNode* delIndex = delIndecies->last;    // the index of next to-be-deleted node
+    CNV_SizeListNode* delIndex = delIndices->last;    // the index of next to-be-deleted node
 
     while (delIndex != NULL)
     {
@@ -181,6 +181,6 @@ int CNV_SizeListDelFromList(CNV_SizeList* sizeList, const CNV_SizeList* delIndec
     }
 
     // update the number of elements in the size list
-    sizeList->count -= delIndecies->count;
+    sizeList->count -= delIndices->count;
     return CNV_OK;
 }
