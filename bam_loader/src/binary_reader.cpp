@@ -1,9 +1,6 @@
 #include <iostream>
 
-#include "bam_loader_global.h"
-#include "cnvs_file_writer.h"
-#include "cnvs_file_reader.h"
-
+#include "CNV_FileUtilities.h"
 
 using namespace std;
 
@@ -14,10 +11,19 @@ int main(int argc, char* argv[])
 		return 0;
 
 	
-	cnvs_file_handler fn_handle;
+	CNV_BinaryFileHandler fn_handle;
 
-	cnvs_read_file(argv[1], &fn_handle);
+	FILE *in_f = fopen(argv[1], "r");
 
+	if(in_f == NULL)
+	{
+		perror("Unable to open file to read");
+		exit(0);
+	}
+
+	CNV_LoadBinary(in_f, &fn_handle);
+
+	fclose(in_f);
 
 	for(size_t idx_sample = 0; idx_sample < fn_handle.n_samples; idx_sample++)
 	{
@@ -32,12 +38,14 @@ int main(int argc, char* argv[])
 	{
 		for(size_t idx_sample=0; idx_sample < fn_handle.n_samples; idx_sample++)
 		{
-			cout<<fn_handle.coverage_data[idx_sample + idx_target * fn_handle.n_samples];
+			cout<<fn_handle.coverage_data[CNVS_COVMAT_LOC(idx_sample, idx_target, fn_handle.n_samples)];
 			if(idx_sample != fn_handle.n_samples)
 				cout<<",";
 		}
 		cout<<endl;
 	}
+
+	CNV_BinaryFileHandler_Free(fn_handle);
 
 
 

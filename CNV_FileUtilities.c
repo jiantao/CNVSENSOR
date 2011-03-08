@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "CNV_Types.h"
 #include "CNV_FileUtilities.h"
 
 size_t CNV_ReadBinary(FILE * fp,							// File pointer to be written 
@@ -22,7 +21,7 @@ size_t CNV_ReadBinary(FILE * fp,							// File pointer to be written
 	totalRead += fread(n_targets, sizeof(size_t), 1, fp);
 
 	*sample_names = (char **)malloc(sizeof(char*)*(*n_samples));
-	size_t i, j;
+	size_t i;
 
 	for(i=0; i<*n_samples; i++)
 	{
@@ -38,13 +37,7 @@ size_t CNV_ReadBinary(FILE * fp,							// File pointer to be written
 		exit(255);
 	}
 
-	for(i=0; i<*n_samples; i++)
-	{
-		for(j=0; j<*n_targets; j++)
-		{
-			totalRead += fread((*coverage_data)+i+j*(*n_samples), sizeof(double), 1, fp);
-		}
-	}
+	totalRead += fread(*coverage_data, sizeof(double), (*n_samples)*(*n_targets), fp);
 
 	return totalRead;
 }
@@ -60,7 +53,7 @@ size_t CNV_LoadBinary(FILE * fp, CNV_BinaryFileHandler* f_handle)
 
 }
 
-size_t CNV_WriteBinary(FILE * fp, size_t n_samples, size_t n_targets, char** sample_names, double ** coverage_data)
+size_t CNV_WriteBinary(FILE * fp, size_t n_samples, size_t n_targets, char** sample_names, double * coverage_data)
 {
 	size_t totalWritten = 0;
 
@@ -75,10 +68,10 @@ size_t CNV_WriteBinary(FILE * fp, size_t n_samples, size_t n_targets, char** sam
 	size_t i;
 
 	for(i=0; i<n_samples; i++)
-		totalWritten += fwrite(sample_names[i], sizeof(char), 		CNVS_SAMPLE_NAME_CHAR, 	fp);
+		totalWritten += fwrite(sample_names[i], sizeof(char), 	CNVS_SAMPLE_NAME_CHAR, 	fp);
 
-	for(i=0; i<n_samples; i++)
-		totalWritten += fwrite(coverage_data[i], sizeof(double), 	n_targets, 				fp);
+	//for(i=0; i<n_samples; i++)
+	totalWritten += fwrite(coverage_data,	 	sizeof(double), n_targets*n_samples, 	fp);
 
 	return totalWritten;
 }
@@ -87,19 +80,18 @@ size_t CNV_SaveBinary(FILE *fp, CNV_BinaryFileHandler *f_handle)
 {
 	return
 		CNV_WriteBinary(fp,
-						&(f_handle->n_sample),
-						&(f_handle->n_targets),
-						&(f_handle->sample_names),
-						&(f_handle->coverage_data));
+						f_handle->n_samples,
+						f_handle->n_targets,
+						f_handle->sample_names,
+						f_handle->coverage_data);
 }
 
-void CNV_BinaryFileHandler_Free(CNV_BinaryFileHandler *h)
+void CNV_BinaryFileHandler_Free(CNV_BinaryFileHandler h)
 {
 	size_t i;
-	for(i=0; i<h->n_samples; i++)
-		free(h->sample_names[i]);
+	for(i=0; i<h.n_samples; i++)
+		free(h.sample_names[i]);
 	
-	free(h->sample_names);
-	free(h->coverage_data);
-	free(h);
+	free(h.sample_names);
+	free(h.coverage_data);
 }

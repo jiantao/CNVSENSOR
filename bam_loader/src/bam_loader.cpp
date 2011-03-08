@@ -8,12 +8,15 @@
 #include "api/BamAlignment.h"
 #include "api/BamReader.h"
 
-#include "bam_loader_global.h"
-#include "cnvs_file_writer.h"
+#include "CNV_FileUtilities.h"
+
+
 
 int loglvl = 3;
 
 using namespace std;
+
+typedef double cnvs_cov_t;
 
 typedef struct _target
 {
@@ -194,12 +197,13 @@ int main(int argc, char* argv[])
 	size_t n_samples = lst_fn_bam.size();
 	size_t n_targets = Targets.size();
 
-	cnvs_cov_t **coverageData = (cnvs_cov_t **)malloc(sizeof(cnvs_cov_t *)*n_samples);
+	cnvs_cov_t *coverageData = (cnvs_cov_t *)malloc(sizeof(cnvs_cov_t)*n_samples*n_targets);
 	if(coverageData == NULL)
 	{
 		cerr<<"Can't allocate space for coverage matrix"<<endl;
 		exit(255);
 	}
+	memset(coverageData, 0, sizeof(cnvs_cov_t)*n_samples*n_targets);
 
 	char ** sampleNames = (char **)malloc(sizeof(char*)*n_targets);
 	if(sampleNames == NULL)
@@ -225,17 +229,6 @@ int main(int argc, char* argv[])
 			cerr<<"Can't allocate space for sample name at "<<idx_sample<<endl;
 			exit(255);
 		}
-
-		coverageData[idx_sample] = (cnvs_cov_t *)malloc(sizeof(cnvs_cov_t)*n_targets);
-		if(coverageData[idx_sample] == NULL)
-		{
-			cerr<<"Can't allocate space for coverage data cells at "<<idx_sample<<endl;
-			exit(255);
-		}
-
-		// Initialize the coverage matrix to be 0
-		memset(coverageData[idx_sample], 0, sizeof(cnvs_cov_t)*n_targets);
-
 
 		if(loglvl >= 3)
 			cerr<<"memory allocation completed"<<endl;
@@ -316,7 +309,7 @@ int main(int argc, char* argv[])
 				switch(algorithm)
 				{
 					case ALGO_READ_COV:
-						coverageData[idx_sample][idx_target]++;
+						coverageData[CNVS_COVMAT_LOC(idx_sample, idx_target, n_samples)]++;
 						break;
 					case ALGO_BASE_COV:
 						int32_t p_pos;
@@ -336,9 +329,9 @@ int main(int argc, char* argv[])
 				qsort(b_covs, length, sizeof(cnvs_cov_t), compare_cnvs_cov_t);
 					
 				if(length % 2 != 0)
-					coverageData[idx_sample][idx_target] = b_covs[length / 2 + 1];
+					coverageData[CNVS_COVMAT_LOC(idx_sample, idx_target, n_samples)] = b_covs[length / 2 + 1];
 				else
-					coverageData[idx_sample][idx_target] = ( b_covs[length / 2 ] + b_covs[length / 2 + 1] ) / 2;
+					coverageData[CNVS_COVMAT_LOC(idx_sample, idx_target, n_samples)] = ( b_covs[length / 2 ] + b_covs[length / 2 + 1] ) / 2;
 			
 				free(b_covs);
 			}
@@ -370,18 +363,21 @@ int main(int argc, char* argv[])
 	{
 		for(size_t idx_sample=0; idx_sample < n_samples; idx_sample++)
 		{
-			cout<<"\t"<<coverageData[idx_sample][idx_target];
+			cout<<"\t"<<coverageData[CNVS_COVMAT_LOC(idx_sample, idx_target, n_samples)];
 		}
 		cout<<endl;
 	}
 
-	cnvs_write_file(fn_output, n_samples, n_targets, sampleNames, coverageData);
-
-	for(size_t idx_sample=0; idx_sample<n_samples; idx_sample++)
+	FILE *outf = fopen(fn_output, "w");
+	if(outf == NULL)
 	{
-		free(coverageData[idx_sample]);
+		perror("Cannot open file to write");
+		exit(0);
 	}
 
+	CNV_WriteBinary(outf, n_samples, n_targets, sampleNames, coverageData);
+
+	fclose(outf);
 
 	free(coverageData);
 	free(sampleNames);

@@ -2,9 +2,12 @@
 #define  CNV_FILEUTILITIES_H
 
 #include <stdlib.h>
-#include "CNV_Types.h"
 
 #define CNVS_SAMPLE_NAME_CHAR 100
+#define CNVS_COVMAT_LOC(i_s, i_t, n_samples) ((i_t)*(n_samples)+(i_s))
+
+
+typedef double cnvs_cov_t;
 
 typedef struct _coverage_file_handler
 {
@@ -37,14 +40,14 @@ size_t CNV_LoadBinary(FILE * fp, CNV_BinaryFileHandler* f_handle);
 // Writer/Saver functions
 
 size_t CNV_WriteBinary(FILE * fp, 					// File pointer to which the data is to be stored
-					   size_t* n_samples,			// number of samples
-					   size_t* n_targets,			// number of targets
+					   size_t n_samples,			// number of samples
+					   size_t n_targets,			// number of targets
 					   char ** sample_names,		// array of sample names
-					   double ** coverage_data); 	// array of coverage data, target is stored as row
+					   double * coverage_data); 	// array of coverage data, target is stored as row
 
 size_t CNV_SaveBinary(FILE * fp, CNV_BinaryFileHandler* f_handle);
 
-void CNV_BinaryFileHandler_Free(CNV_BinaryFileHandler *h);
+void CNV_BinaryFileHandler_Free(CNV_BinaryFileHandler h);
 
 
 #endif  /*CNV_FILEUTILITIES_H*/
