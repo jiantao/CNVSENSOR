@@ -9,11 +9,11 @@ all: bam_loader binary_reader
 	
 .PHONY: all
 
-bam_loader: src/bam_loader.cpp ../CNV_FileUtilities.c
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) src/bam_loader.cpp ../CNV_FileUtilities.c ../bamtools/lib/libbamtools.a -o bam_loader
+bam_loader: src/bam_loader.cpp ../CNV_FileUtilities.c ../CNV_Error.c
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) src/bam_loader.cpp ../CNV_FileUtilities.c ../CNV_Error.c ../bamtools/lib/libbamtools.a -o bam_loader
 
-binary_reader: src/binary_reader.cpp ../CNV_FileUtilities.c
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) src/binary_reader.cpp ../CNV_FileUtilities.c -o binary_reader
+binary_reader: src/binary_reader.cpp ../CNV_FileUtilities.c ../CNV_Error.c
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) src/binary_reader.cpp ../CNV_FileUtilities.c ../CNV_Error.c -o binary_reader
 
 clean:
 	rm -rf *.o bam_loader* binary_reader*

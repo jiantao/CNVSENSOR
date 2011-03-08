@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "CNV_Error.h"
 #include "CNV_FileUtilities.h"
 
 size_t CNV_ReadBinary(FILE * fp,							// File pointer to be written 
