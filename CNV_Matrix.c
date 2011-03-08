@@ -17,6 +17,7 @@
  */
 
 #include <assert.h>
+
 #include "CNV_Error.h"
 #include "CNV_Matrix.h"
 
@@ -26,7 +27,7 @@
 //===============================
 
 // create a new matrix
-CNV_Matrix* CNV_MatrixAlloc(cnv_size_t rows, cnv_size_t cols)
+CNV_Matrix* CNV_MatrixAlloc(size_t rows, size_t cols)
 {
     // both dimensions of the matrix cannot be zero
     assert(rows != 0 && cols != 0);
@@ -50,7 +51,7 @@ CNV_Matrix* CNV_MatrixAlloc(cnv_size_t rows, cnv_size_t cols)
 }
 
 // create a new matrix and initialize all the elements to zero
-CNV_Matrix* CNV_MatrixCalloc(cnv_size_t rows, cnv_size_t cols)
+CNV_Matrix* CNV_MatrixCalloc(size_t rows, size_t cols)
 {
     // both dimensions of the matrix cannot be zero
     assert(rows != 0 && cols != 0);
@@ -125,10 +126,10 @@ void CNV_MatrixPrint(const CNV_Matrix* matrix, FILE* output)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
+        size_t matrixIndex = i * matrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             fprintf(output, "%-10.2f ", matrix->data[matrixIndex++]);
@@ -140,7 +141,7 @@ void CNV_MatrixPrint(const CNV_Matrix* matrix, FILE* output)
 }
 
 // get the element in i-th row and j-th column of the matrix
-double CNV_MatrixGet(const CNV_Matrix* matrix, cnv_size_t i, cnv_size_t j)
+double CNV_MatrixGet(const CNV_Matrix* matrix, size_t i, size_t j)
 {
     assert(matrix != NULL && matrix->data != NULL);
     assert(i < matrix->rows && j < matrix->cols);
@@ -196,8 +197,8 @@ int CNV_MatrixLinearFit(CNV_Matrix* matrix, const CNV_Vector* obs, CNV_Vector* c
     {
         for (unsigned i = 0; i != matrix->rows; ++i)
         {
-            cnv_size_t coeffsIndex   = i * coeffs->stride;
-            cnv_size_t rSquaresIndex = i * rSquares->stride;
+            size_t coeffsIndex   = i * coeffs->stride;
+            size_t rSquaresIndex = i * rSquares->stride;
 
             CNV_MatrixGetRowView(matrix, &vectorView, i);
             CNV_VectorLinearFit(obs, &vectorView, &(coeffs->data[coeffsIndex]), &(rSquares->data[rSquaresIndex]));
@@ -207,8 +208,8 @@ int CNV_MatrixLinearFit(CNV_Matrix* matrix, const CNV_Vector* obs, CNV_Vector* c
     {
         for (unsigned i = 0; i != matrix->cols; ++i)
         {
-            cnv_size_t coeffsIndex   = i * coeffs->stride;
-            cnv_size_t rSquaresIndex = i * rSquares->stride;
+            size_t coeffsIndex   = i * coeffs->stride;
+            size_t rSquaresIndex = i * rSquares->stride;
 
             CNV_MatrixGetColView(matrix, &vectorView, i);
             CNV_VectorLinearFit(obs, &vectorView, &(coeffs->data[coeffsIndex]), &(rSquares->data[rSquaresIndex]));
@@ -223,7 +224,7 @@ int CNV_MatrixLinearFit(CNV_Matrix* matrix, const CNV_Vector* obs, CNV_Vector* c
 //===============================
 
 // set the element in i-th row and j-th column of the matrix
-int CNV_MatrixSet(CNV_Matrix* matrix, cnv_size_t i, cnv_size_t j, double value)
+int CNV_MatrixSet(CNV_Matrix* matrix, size_t i, size_t j, double value)
 {
     assert(matrix != NULL && matrix->data != NULL);
     assert(i < matrix->rows && j < matrix->cols);
@@ -234,7 +235,7 @@ int CNV_MatrixSet(CNV_Matrix* matrix, cnv_size_t i, cnv_size_t j, double value)
 }
 
 // get a submatrix of the original one
-int CNV_MatrixGetView(CNV_Matrix* matrix, CNV_MatrixView* matrixView, cnv_size_t beginRow, cnv_size_t endRow, cnv_size_t beginCol, cnv_size_t endCol)
+int CNV_MatrixGetView(CNV_Matrix* matrix, CNV_MatrixView* matrixView, size_t beginRow, size_t endRow, size_t beginCol, size_t endCol)
 {
     // there should not be any null pointers for input
     assert(matrix != NULL && matrix->data != NULL && matrixView != NULL);
@@ -246,7 +247,7 @@ int CNV_MatrixGetView(CNV_Matrix* matrix, CNV_MatrixView* matrixView, cnv_size_t
     assert(beginRow < endRow && beginCol < endCol);
 
     // get the dimension information for the submatrix 
-    cnv_size_t beginInArray = beginRow * matrix->cols + beginCol;
+    size_t beginInArray = beginRow * matrix->cols + beginCol;
     matrixView->data = matrix->data + beginInArray;
     matrixView->rows = endRow - beginRow + 1;
     matrixView->cols = endCol - beginCol + 1;
@@ -256,7 +257,7 @@ int CNV_MatrixGetView(CNV_Matrix* matrix, CNV_MatrixView* matrixView, cnv_size_t
 }
 
 // Get a view of a certain row of a matrix
-int CNV_MatrixGetRowView(CNV_Matrix* matrix, CNV_VectorView* rowView, cnv_size_t rowNum)
+int CNV_MatrixGetRowView(CNV_Matrix* matrix, CNV_VectorView* rowView, size_t rowNum)
 {
     // check input arguments
     assert(matrix != NULL && matrix->data != NULL && rowView != NULL && rowNum < matrix->rows);
@@ -270,7 +271,7 @@ int CNV_MatrixGetRowView(CNV_Matrix* matrix, CNV_VectorView* rowView, cnv_size_t
 }
 
 // Get a view of a certain column of a matrix
-int CNV_MatrixGetColView(CNV_Matrix* matrix, CNV_VectorView* colView, cnv_size_t colNum)
+int CNV_MatrixGetColView(CNV_Matrix* matrix, CNV_VectorView* colView, size_t colNum)
 {
     // check input arguments
     assert(matrix != NULL && matrix->data != NULL && colView != NULL && colNum < matrix->cols);
@@ -284,7 +285,7 @@ int CNV_MatrixGetColView(CNV_Matrix* matrix, CNV_VectorView* colView, cnv_size_t
 }
 
 // swap two rows in a matrix
-void CNV_MatrixSwapRows(CNV_Matrix* matrix, cnv_size_t rowSwapFrom, cnv_size_t rowSwapTo)
+void CNV_MatrixSwapRows(CNV_Matrix* matrix, size_t rowSwapFrom, size_t rowSwapTo)
 {
     assert(matrix != NULL && matrix->data != NULL);
     assert(matrix->rows > rowSwapFrom && matrix->rows > rowSwapTo);
@@ -294,7 +295,7 @@ void CNV_MatrixSwapRows(CNV_Matrix* matrix, cnv_size_t rowSwapFrom, cnv_size_t r
         return;
 
     double temp = 0;
-    cnv_size_t stopPos = rowSwapFrom * matrix->stride + matrix->cols;
+    size_t stopPos = rowSwapFrom * matrix->stride + matrix->cols;
     for (unsigned i = rowSwapFrom * matrix->stride, j = rowSwapTo * matrix->stride; i != stopPos; ++i, ++j)
     {
         temp = matrix->data[i];
@@ -304,7 +305,7 @@ void CNV_MatrixSwapRows(CNV_Matrix* matrix, cnv_size_t rowSwapFrom, cnv_size_t r
 }
 
 // swap two rows in a matrix
-void CNV_MatrixSwapCols(CNV_Matrix* matrix, cnv_size_t colSwapFrom, cnv_size_t colSwapTo)
+void CNV_MatrixSwapCols(CNV_Matrix* matrix, size_t colSwapFrom, size_t colSwapTo)
 {
     assert(matrix != NULL && matrix->data != NULL);
     assert(matrix->cols > colSwapFrom && matrix->cols > colSwapTo);
@@ -314,7 +315,7 @@ void CNV_MatrixSwapCols(CNV_Matrix* matrix, cnv_size_t colSwapFrom, cnv_size_t c
         return;
 
     double temp = 0;
-    cnv_size_t stopPos = matrix->rows * matrix->stride + colSwapFrom;
+    size_t stopPos = matrix->rows * matrix->stride + colSwapFrom;
     for (unsigned i = colSwapFrom, j = colSwapTo; i != stopPos; i += matrix->stride, j += matrix->stride)
     {
         temp = matrix->data[i];
@@ -336,11 +337,11 @@ int CNV_MatrixAdd(CNV_Matrix* matrix, const CNV_Matrix* otherMatrix)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
-        cnv_size_t otherMatrixIndex = i * otherMatrix->stride;
+        size_t matrixIndex = i * matrix->stride;
+        size_t otherMatrixIndex = i * otherMatrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             matrix->data[matrixIndex++] += otherMatrix->data[otherMatrixIndex++];
@@ -361,11 +362,11 @@ int CNV_MatrixSub(CNV_Matrix* matrix, const CNV_Matrix* otherMatrix)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
-        cnv_size_t otherMatrixIndex = i * otherMatrix->stride;
+        size_t matrixIndex = i * matrix->stride;
+        size_t otherMatrixIndex = i * otherMatrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             matrix->data[matrixIndex++] -= otherMatrix->data[otherMatrixIndex++];
@@ -385,11 +386,11 @@ int CNV_MatrixTimes(CNV_Matrix* matrix, const CNV_Matrix* otherMatrix)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
-        cnv_size_t otherMatrixIndex = i * otherMatrix->stride;
+        size_t matrixIndex = i * matrix->stride;
+        size_t otherMatrixIndex = i * otherMatrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             matrix->data[matrixIndex++] *= otherMatrix->data[otherMatrixIndex++];
@@ -409,11 +410,11 @@ int CNV_MatrixDiv(CNV_Matrix* matrix, const CNV_Matrix* otherMatrix)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
-        cnv_size_t otherMatrixIndex = i * otherMatrix->stride;
+        size_t matrixIndex = i * matrix->stride;
+        size_t otherMatrixIndex = i * otherMatrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             matrix->data[matrixIndex++] /= otherMatrix->data[otherMatrixIndex++];
@@ -431,10 +432,10 @@ int CNV_MatrixAddConstant(CNV_Matrix* matrix, double factor)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
+        size_t matrixIndex = i * matrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             matrix->data[matrixIndex++] += factor; 
@@ -452,10 +453,10 @@ int CNV_MatrixScale(CNV_Matrix* matrix, double scale)
     for (unsigned i = 0; i != matrix->rows; ++i)
     {
         // get the begin position of current row
-        cnv_size_t matrixIndex = i * matrix->stride;
+        size_t matrixIndex = i * matrix->stride;
 
         // get the end position of current row
-        cnv_size_t matrixRowEnd = matrixIndex + matrix->cols;
+        size_t matrixRowEnd = matrixIndex + matrix->cols;
         
         while (matrixIndex != matrixRowEnd)
             matrix->data[matrixIndex++] *= scale; 
@@ -490,102 +491,105 @@ int CNV_MatrixFromVectorsMultiply(CNV_Matrix* matrix, const CNV_Vector* vectorCo
 }
 
 
-// delete a certain row or column from a matrix (lazy or cover mode)
-int CNV_MatrixDelVector(CNV_Matrix* matrix, cnv_size_t* toBeDel, cnv_size_t delNum, cnv_size_t* indexMap, cnv_size_t* indexMapNum, CNV_Direction direction)
+// delete certain rows or columns from a matrix (swap the to-be-deleted rows or columns to the end of the matrix)
+int CNV_MatrixDelVectors(CNV_Matrix* matrix, CNV_SizeVector* indexMap, const CNV_SizeList* delIndices, CNV_Direction direction)
 {
     assert(matrix != NULL && matrix->data != NULL);
-    assert(toBeDel != NULL && delNum > 0);
-    assert(indexMap != NULL && indexMapNum != NULL && *indexMapNum > 0);
+    assert(indexMap != NULL && indexMap->sizeData != NULL);
+    assert(delIndices != NULL);
+
+    // nothing to be deleted
+    if (delIndices->count == 0)
+        return CNV_OK;
+
+    // number of vectors left to be deleted
+    size_t leftDelNum = delIndices->count;
+
+    // the index of the vector to be deleted
+    CNV_SizeListNode* currDelIndex = delIndices->first;
+
+    // last element in to-be-deleted list
+    CNV_SizeListNode* lastDelIndex = delIndices->last;
 
     if (direction == ROW_DIRECTION) // delete rows
     {
+        assert(indexMap->count == matrix->rows);
+
         // next available row for to-be-deleted row
-        cnv_size_t nextRow = matrix->rows - 1;
-
-        // the row to be deleted
-        cnv_size_t currDel = 0;
-
-        // last element in to-be-deleted array
-        cnv_size_t lastDel = delNum - 1;
-
-        // number of rows left to be deleted
-        cnv_size_t leftDelNum = delNum;
+        size_t nextRow = matrix->rows - 1;
 
         while (leftDelNum != 0)
         {
             // find the next avaiable row that to-be-deleted row can be swap to
-            while (nextRow == toBeDel[lastDel] && nextRow != toBeDel[currDel])
+            while (nextRow == lastDelIndex->sizeData && nextRow != currDelIndex->sizeData)
             {
                 --nextRow;
-                --lastDel;
                 --leftDelNum;
+                lastDelIndex = lastDelIndex->prev;
             }
 
             // swap the to-be-deleted row to the end of the matrix
-            if (toBeDel[currDel] < nextRow) 
+            if (currDelIndex->sizeData < nextRow) 
             {
                 // swap the two rows
-                CNV_MatrixSwapRows(matrix, toBeDel[currDel], nextRow);
-                // temp variable for swap
-                double temp = 0;
-                // swap their index
-                CNV_SWAP_NUM(indexMap[toBeDel[currDel]], indexMap[nextRow], temp);
+                CNV_MatrixSwapRows(matrix, currDelIndex->sizeData, nextRow);
+
+                // swap two indices in the index map
+                size_t temp = 0;
+                CNV_SWAP(indexMap->sizeData[currDelIndex->sizeData], indexMap->sizeData[nextRow], temp);
+
                 // update variables
                 --nextRow;
-                ++currDel;
                 --leftDelNum;
+                currDelIndex = currDelIndex->next;
             }
             else
                 break;
         }
 
-        matrix->rows -= delNum;
+        // update the number of rows in the matrix
+        matrix->rows -= delIndices->count;
     }
     else // delete columns
     {
+        assert(indexMap->count == matrix->cols);
+
         // next available row for to-be-deleted row
-        cnv_size_t nextCol = matrix->cols - 1;
-
-        // the row to be deleted
-        cnv_size_t currDel = 0;
-
-        // last element in to-be-deleted array
-        cnv_size_t lastDel = delNum - 1;
-
-        // number of columns left to be deleted
-        cnv_size_t leftDelNum = delNum;
+        size_t nextCol = matrix->cols - 1;
 
         while (leftDelNum != 0)
         {
             // find the next avaiable row that to-be-deleted row can be swap to
-            while (nextCol == toBeDel[lastDel] && nextCol != toBeDel[currDel])
+            while (nextCol == lastDelIndex->sizeData && nextCol != currDelIndex->sizeData)
             {
                 --nextCol;
-                --lastDel;
                 --leftDelNum;
+                lastDelIndex = lastDelIndex->prev;
             }
 
             // swap the to-be-deleted row to the end of the matrix
-            if (toBeDel[currDel] < nextCol) 
+            if (currDelIndex->sizeData < nextCol) 
             {
                 // swap two columns
-                CNV_MatrixSwapCols(matrix, toBeDel[currDel], nextCol);
-                // temp variable for swap
-                double temp = 0;
-                // swap their index
-                CNV_SWAP_NUM(indexMap[toBeDel[currDel]], indexMap[nextCol], temp);
+                CNV_MatrixSwapCols(matrix, currDelIndex->sizeData, nextCol);
+
+                // swap two indices in the index map
+                size_t temp = 0;
+                CNV_SWAP(indexMap->sizeData[currDelIndex->sizeData], indexMap->sizeData[nextCol], temp);
+
                 // update variables
                 --nextCol;
-                ++currDel;
                 --leftDelNum;
+                currDelIndex = currDelIndex->next;
             }
             else 
                 break;
         }
 
-        matrix->cols -= delNum;
+        // update the number of columns in the matrix
+        matrix->cols -= delIndices->count;
     }
 
-    *indexMapNum -= delNum;
+    indexMap->count -= delIndices->count;
     return CNV_OK;
 }

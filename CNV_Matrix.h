@@ -21,6 +21,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "CNV_List.h"
 #include "CNV_Types.h"
 #include "CNV_Vector.h"
 
@@ -34,11 +36,11 @@ typedef struct
     // array to store the data
     double* data;
     // number of rows
-    cnv_size_t rows;
+    size_t rows;
     // number of columns
-    cnv_size_t cols;
+    size_t cols;
     // distance to the next element in the same column
-    cnv_size_t stride;
+    size_t stride;
 }CNV_Matrix, CNV_MatrixView;
 
 // operation direction of a matrix
@@ -60,10 +62,10 @@ typedef short CNV_DelMode;
 //===============================
 
 // create a new matrix
-CNV_Matrix* CNV_MatrixAlloc(cnv_size_t rows, cnv_size_t cols);
+CNV_Matrix* CNV_MatrixAlloc(size_t rows, size_t cols);
 
 // create a new matrix and initialize all the elements to zero
-CNV_Matrix* CNV_MatrixCalloc(cnv_size_t rows, cnv_size_t cols);
+CNV_Matrix* CNV_MatrixCalloc(size_t rows, size_t cols);
 
 // create a new matrix view 
 CNV_MatrixView* CNV_MatrixViewAlloc(void);
@@ -83,7 +85,7 @@ void CNV_MatrixViewFree(CNV_Matrix* matrix);
 void CNV_MatrixPrint(const CNV_Matrix* matrix, FILE* output);
 
 // get the element in i-th row and j-th column of the matrix
-double CNV_MatrixGet(const CNV_Matrix* matrix, cnv_size_t i, cnv_size_t j);
+double CNV_MatrixGet(const CNV_Matrix* matrix, size_t i, size_t j);
 
 // calculate the median of every row or every column of a matrix 
 int CNV_MatrixGetMedian(CNV_Matrix* matrix, CNV_Vector* medians, CNV_Direction direction);
@@ -96,22 +98,22 @@ int CNV_MatrixLinearFit(CNV_Matrix* matrix, const CNV_Vector* obs, CNV_Vector* c
 //===============================
 
 // set the element in i-th row and j-th column of the matrix
-int CNV_MatrixSet(CNV_Matrix* matrix, cnv_size_t i, cnv_size_t j, double value);
+int CNV_MatrixSet(CNV_Matrix* matrix, size_t i, size_t j, double value);
 
 // Get a submatrix of the original one
-int CNV_MatrixGetView(CNV_Matrix* matrix, CNV_MatrixView* matrixView, cnv_size_t beginRow, cnv_size_t endRow, cnv_size_t beginCol, cnv_size_t endCol);
+int CNV_MatrixGetView(CNV_Matrix* matrix, CNV_MatrixView* matrixView, size_t beginRow, size_t endRow, size_t beginCol, size_t endCol);
 
 // Get a view of a certain row of a matrix
-int CNV_MatrixGetRowView(CNV_Matrix* matrix, CNV_VectorView* rowView, cnv_size_t rowNum);
+int CNV_MatrixGetRowView(CNV_Matrix* matrix, CNV_VectorView* rowView, size_t rowNum);
 
 // Get a view of a certain column of a matrix
-int CNV_MatrixGetColView(CNV_Matrix* matrix, CNV_VectorView* colView, cnv_size_t colNum);
+int CNV_MatrixGetColView(CNV_Matrix* matrix, CNV_VectorView* colView, size_t colNum);
 
 // swap two rows in a matrix
-void CNV_MatrixSwapRows(CNV_Matrix* matrix, cnv_size_t rowSwapFrom, cnv_size_t rowSwapTo);
+void CNV_MatrixSwapRows(CNV_Matrix* matrix, size_t rowSwapFrom, size_t rowSwapTo);
 
 // swap two rows in a matrix
-void CNV_MatrixSwapCols(CNV_Matrix* matrix, cnv_size_t colSwapFrom, cnv_size_t colSwapTo);
+void CNV_MatrixSwapCols(CNV_Matrix* matrix, size_t colSwapFrom, size_t colSwapTo);
 
 // add the elements of a matrix to the elements to another matrix
 int CNV_MatrixAdd(CNV_Matrix* matrix, const CNV_Matrix* otherMatrix);
@@ -135,8 +137,8 @@ int CNV_MatrixScale(CNV_Matrix* matrix, double scale);
 // first vector is a column vector where the second one is a row vector
 int CNV_MatrixFromVectorsMultiply(CNV_Matrix* matrix, const CNV_Vector* vectorCol, const CNV_Vector* vectorRow);
 
-// delete a certain row or column from a matrix (replace the to-be-deleted rows or columns with those rows or columns at the end of the matrix)
-int CNV_MatrixDelVector(CNV_Matrix* matrix, cnv_size_t* toBeDel, cnv_size_t delNum, cnv_size_t* indexMap, cnv_size_t* indexMapNum, CNV_Direction direction);
+// delete certain rows or columns from a matrix (swap the to-be-deleted rows or columns to the end of the matrix)
+int CNV_MatrixDelVectors(CNV_Matrix* matrix, CNV_SizeVector* indexMap, const CNV_SizeList* delIndecies, CNV_Direction direction);
 
 #endif  /*CNV_MATRIX_H*/
 

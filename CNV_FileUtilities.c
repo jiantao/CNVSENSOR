@@ -21,11 +21,27 @@ size_t CNV_ReadBinary(FILE * fp,							// File pointer to be written
 	totalRead += fread(n_targets, sizeof(size_t), 1, fp);
 
 	*sample_names = (char **)malloc(sizeof(char*)*(*n_samples));
+
+
+	if(*sample_names == NULL)
+	{
+		CNV_ErrSys("ERROR: Not enough memory for sample name array.");
+		*n_samples = 0; *n_targets = 0;
+		sample_names = NULL; coverage_data = NULL;
+		return 0;
+	}
+
 	size_t i;
 
 	for(i=0; i<*n_samples; i++)
 	{
 		(*sample_names)[i] = (char *)malloc(sizeof(char)*CNVS_SAMPLE_NAME_CHAR);
+
+		if((*sample_names)[i] == NULL)
+		{
+			CNV_ErrSys("ERROR: Not enough memory gor a sample name.");
+		}
+
 		totalRead += fread((*sample_names)[i], sizeof(char), CNVS_SAMPLE_NAME_CHAR, fp);
 	}
 
@@ -33,8 +49,7 @@ size_t CNV_ReadBinary(FILE * fp,							// File pointer to be written
 	*coverage_data = (cnvs_cov_t *)malloc(sizeof(double)*(*n_samples)*(*n_targets));
 	if(*coverage_data == NULL) 
 	{
-		fprintf(stderr, "Unable to allocate memory space\n");
-		exit(255);
+		CNV_ErrSys("ERROR: Not enough memory for coverage data");
 	}
 
 	totalRead += fread(*coverage_data, sizeof(double), (*n_samples)*(*n_targets), fp);
@@ -50,7 +65,6 @@ size_t CNV_LoadBinary(FILE * fp, CNV_BinaryFileHandler* f_handle)
 					   &(f_handle->n_targets),
 					   &(f_handle->sample_names),
 					   &(f_handle->coverage_data));
-
 }
 
 size_t CNV_WriteBinary(FILE * fp, size_t n_samples, size_t n_targets, char** sample_names, double * coverage_data)

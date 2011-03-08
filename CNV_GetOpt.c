@@ -20,10 +20,16 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "CNV_Error.h"
+#include "CNV_Detector.h"
 #include "CNV_GetOpt.h"
 
+
+//===============================
+// Constructors and Destructors
+//===============================
+
 // initialize the settings struct
-int CNV_IntialSettings(CNV_Arguments* argumentss)
+int CNV_IntialArguments(CNV_Arguments* argumentss)
 {
     assert(argumentss != NULL);
     // initialize the argumentss
@@ -31,7 +37,7 @@ int CNV_IntialSettings(CNV_Arguments* argumentss)
     argumentss->priorFile       = arg_file0("p", "prior",     "<prior_data>",  "input prior probability file");
     argumentss->sampleReadDepth = arg_dbl0( "s", "sample_rd", "<real number>", "threshold for sample read depth");
     argumentss->targetReadDepth = arg_dbl0( "t", "target_rd", "<real number>", "threshold for target read depth");
-    argumentss->rSquare         = arg_dbl0( "r", "r_square",  "[0, 1]",        "threshold for r square value from linear fit");
+    argumentss->rSquare         = arg_dbl0( "r", "r_square",  "(0, 1)",        "threshold for r square value from linear fit");
     argumentss->checkData       = arg_lit0( "c", "check",                      "check the uniformity of the target affinity");
     argumentss->help            = arg_lit0( "h", "help",                       "show help message");
     argumentss->end             = arg_end(CNV_ARG_MAX_ERR);
@@ -39,27 +45,8 @@ int CNV_IntialSettings(CNV_Arguments* argumentss)
     return CNV_OK;
 }
 
-// get the options from command line arguments
-int CNV_GetOpt(int argc, char* argv[], void* argTable[], CNV_Arguments* arguments)
-{
-    // check if we have enough memory for the arguments table
-    if (arg_nullcheck(argTable) != 0)
-        CNV_ErrQuit("Error: Not enough memory for command line arguments table.");
-
-    // parse the command line arguments
-    int numErr = arg_parse(argc, argv, argTable);
-    if (numErr > 0)
-    {
-        // print error if there are any
-        arg_print_errors(stderr, arguments->end, "CNVSENSOR");
-        CNV_ErrQuit("Try '%s --help' for more information.\n", argv[0]);
-    }
-
-    return CNV_OK;
-}
-
-// check the options got from command line arguments
-int CNV_CheckOpt(const CNV_Arguments* arguments, CNV_Settings* settings)
+// check the options got from command line arguments and initialize the settings of detector
+int CNV_InitialSettings(const CNV_Arguments* arguments, CNV_Settings* settings)
 {
     assert(arguments != NULL && settings != NULL);
 
@@ -86,7 +73,9 @@ int CNV_CheckOpt(const CNV_Arguments* arguments, CNV_Settings* settings)
 
     // set up the threshold for sample coverage
     if (arguments->sampleReadDepth->count == 0)
+    {
         settings->sampleReadDepthCut = CNV_DEFAULT_SAMPLE_RD_CUT;
+    }
     else
         settings->sampleReadDepthCut = *(arguments->sampleReadDepth->dval);
 
@@ -122,6 +111,31 @@ int CNV_CheckOpt(const CNV_Arguments* arguments, CNV_Settings* settings)
     return CNV_OK;
 }
 
+// clean up the detector's settings
+void CNV_CleanOpt(void* argTable[], CNV_Arguments* arguments, CNV_Settings* settings)
+{
+    assert(argTable != NULL && settings != NULL);
+
+    // close the read count binary file
+    if (fclose(settings->readCountInput) != 0)
+        CNV_ErrSys("ERROR: Cannot close the file \"%s\".\n", *(arguments->inputFile->filename));
+
+    // close the prior probability file if there is one
+    if (settings->priorInput != NULL)
+    {
+        if (fclose(settings->priorInput) != 0)
+            CNV_ErrSys("ERROR: Cannot close the file \"%s\".\n", *(arguments->priorFile->filename));
+    }
+
+    // free the arguments table
+    arg_freetable(argTable, sizeof(argTable));
+}
+
+
+//===============================
+// Constant methods
+//===============================
+
 // show help message
 void CNV_ShowHelp(const char* progName, void* argTable[], const CNV_Arguments* arguments)
 {
@@ -129,6 +143,36 @@ void CNV_ShowHelp(const char* progName, void* argTable[], const CNV_Arguments* a
 
     printf("Usage: %s", progName);
     arg_print_syntaxv(stdout, argTable, NULL);
-    printf("Detect the CNV events from capture sequencing data with read depth algorithm.\n");
-    arg_print_glossary(stdout, argTable, "  %-25s %s\n");
+    printf("\nDetect the CNV events from CAPTURE SEQUENCING DATA with READ DEPTH algorithm.\n\n");
+    arg_print_glossary(stdout, argTable, "  %-40s %s\n");
+}
+
+
+//===============================
+// Non-constant methods
+//===============================
+
+// parse the options from command line arguments
+int CNV_ParseOpt(int argc, char* argv[], void* argTable[], CNV_Arguments* arguments)
+{
+    // check if we have enough memory for the arguments table
+    if (arg_nullcheck(argTable) != 0)
+        CNV_ErrQuit("Error: Not enough memory for command line arguments table.");
+
+    // parse the command line arguments
+    int numErr = arg_parse(argc, argv, argTable);
+    if (arguments->help->count > 0)
+    {
+        CNV_ShowHelp(argv[0], argTable, arguments);
+        exit(EXIT_SUCCESS);
+    }
+
+    if (numErr > 0)
+    {
+        // print error if there are any
+        arg_print_errors(stderr, arguments->end, "CNVSENSOR");
+        CNV_ErrQuit("Try '%s --help' for more information.\n", argv[0]);
+    }
+
+    return CNV_OK;
 }

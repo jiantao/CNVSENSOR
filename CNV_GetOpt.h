@@ -23,17 +23,13 @@
 #include <argtable2.h>
 #include "CNV_Types.h"
 
+
+//===============================
+// Type and constant definition
+//===============================
+
 // max number of error that will be displayed because of command line arguments
 #define CNV_ARG_MAX_ERR 30
-
-// default threshold value for sample coverage
-#define CNV_DEFAULT_SAMPLE_RD_CUT 30
-
-// default threshold value for target coverage
-#define CNV_DEFAULT_TARGET_RD_CUT 30
-
-// default threshold value for r squared value
-#define CNV_DEFAULT_R_SQUARE_CUT  0.7
 
 // strut to hold the command line arguements
 typedef struct arguments
@@ -60,17 +56,34 @@ typedef struct settings
     Bool   ifShowHelp;           // boolean variable controls if display the help message and quit
 }CNV_Settings;
 
+
+//===============================
+// Constructors and Destructors
+//===============================
+
 // initialize the arguments struct
 int CNV_IntialArguments(CNV_Arguments* arguments);
 
-// get the options from command line arguments
-int CNV_GetOpt(int argc, char* argv[], void* argTable[], CNV_Arguments* arguments);
+// check the options got from command line arguments and initialize the settings of detector
+int CNV_InitialSettings(const CNV_Arguments* arguments, CNV_Settings* settings);
 
-// check the options got from command line arguments
-int CNV_CheckOpt(const CNV_Arguments* arguments, CNV_Settings* settings);
+// clean up the detector's settings
+void CNV_CleanOpt(void* argTable[], CNV_Arguments* arguments, CNV_Settings* settings);
+
+
+//===============================
+// Constant methods
+//===============================
 
 // show help message
 void CNV_ShowHelp(const char* progName, void* argTable[], const CNV_Arguments* arguments);
 
+
+//===============================
+// Non-constant methods
+//===============================
+
+// parsing the options from command line arguments
+int CNV_ParseOpt(int argc, char* argv[], void* argTable[], CNV_Arguments* arguments);
 
 #endif  /*CNV_GETOPT_H*/

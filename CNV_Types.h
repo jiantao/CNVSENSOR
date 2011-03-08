@@ -59,13 +59,13 @@ typedef struct arg_end  arg_finish;
 #define CNV_OK   0
 #define CNV_ERR -1
 
-// swap two numbers
-#define CNV_SWAP_NUM(num1, num2, temp) \
+// swap two objects
+#define CNV_SWAP(obj1, obj2, temp) \
     do                   \
     {                    \
-        (temp) = (num1); \
-        (num1) = (num2); \
-        (num2) = (temp); \
+        (temp) = (obj1); \
+        (obj1) = (obj2); \
+        (obj2) = (temp); \
     }while(0)        
 
 // calculate square of a number 

@@ -30,7 +30,7 @@
 //===============================
 
 // create a new vector
-CNV_Vector* CNV_VectorAlloc(cnv_size_t size)
+CNV_Vector* CNV_VectorAlloc(size_t size)
 {
     // newVector size should not be zero
     assert(size != 0);
@@ -53,7 +53,7 @@ CNV_Vector* CNV_VectorAlloc(cnv_size_t size)
 }
 
 // create a new vector and initialize every element into zero
-CNV_Vector* CNV_VectorCalloc(cnv_size_t size)
+CNV_Vector* CNV_VectorCalloc(size_t size)
 {
     // newVector size should not be zero
     assert(size != 0);
@@ -111,6 +111,39 @@ void CNV_VectorViewFree(CNV_VectorView* vectorView)
     free(vectorView);
 }
 
+// create a new size vector
+CNV_SizeVector* CNV_SizeVectorAlloc(size_t size)
+{
+    assert(size > 0);
+
+    // allocate memory for the size vector object
+    CNV_SizeVector* sizeVector = (CNV_SizeVector*) malloc(sizeof(CNV_SizeVector));
+    if (sizeVector == NULL)
+        CNV_ErrSys("ERROR: Not enough memroy for a size vector.\n");
+
+    // allocate memory for the data
+    sizeVector->sizeData = (size_t*) malloc(size * sizeof(size_t));
+    if (sizeVector->sizeData == NULL)
+        CNV_ErrSys("ERROR: Not enough memroy for the data storage of a size vector.\n");
+
+    // initialize members
+    sizeVector->count    = 0;
+    sizeVector->capacity = size;
+
+    return sizeVector;
+}
+
+// free a size vector
+void CNV_SizeVectorFree(CNV_SizeVector* sizeVector)
+{
+    assert(sizeVector != NULL);
+
+    if (sizeVector->sizeData != NULL)
+        free(sizeVector->sizeData);
+
+    free(sizeVector);
+}
+
 
 //===============================
 // Constant methods
@@ -122,7 +155,7 @@ void CNV_VectorPrint(const CNV_Vector* vector, FILE* output)
     assert(vector != NULL && vector->data != NULL && output != NULL);
 
     // position where to stop
-    cnv_size_t stopPos = vector->size * vector->stride;
+    size_t stopPos = vector->size * vector->stride;
 
     for (unsigned i = 0; i < stopPos; i += vector->stride)
         fprintf(output, "%-10.2f ", vector->data[i]);
@@ -258,14 +291,14 @@ double CNV_VectorGetMedian(const CNV_Vector* vector)
 }
 
 // calculate the k-th smallest value in the vector
-int CNV_VectorGetKthSmallest(const CNV_Vector* vector, double* temp, double* results, cnv_size_t resultsLength, ...)
+int CNV_VectorGetKthSmallest(const CNV_Vector* vector, double* temp, double* results, size_t resultsLength, ...)
 {
     assert(vector != NULL && vector->data != NULL);
     assert(temp != NULL && results != NULL && resultsLength % 2 == 0);
 
     // how many elements greater than guess
-    const cnv_size_t vectorSize = vector->size;
-    const cnv_size_t stopPos    = vector->size * vector->stride;
+    const size_t vectorSize = vector->size;
+    const size_t stopPos    = vector->size * vector->stride;
 
     // max element in the vector
     double max = DBL_MIN;
@@ -283,16 +316,16 @@ int CNV_VectorGetKthSmallest(const CNV_Vector* vector, double* temp, double* res
     unsigned argNum = resultsLength / 2;
     for (unsigned count = 0; count != argNum; ++count)
     {
-        cnv_size_t k = va_arg(varArg, cnv_size_t);
+        size_t k = va_arg(varArg, size_t);
 
-        cnv_size_t leftBound = 0;
-        cnv_size_t rightBound = vectorSize - 1;
+        size_t leftBound = 0;
+        size_t rightBound = vectorSize - 1;
         while (leftBound < rightBound)
         {
             double swapTemp = 0.0;
             double guess = temp[k];
-            cnv_size_t i = leftBound;
-            cnv_size_t j = rightBound;
+            size_t i = leftBound;
+            size_t j = rightBound;
             do
             {
                 while (temp[i] < guess)
@@ -351,7 +384,7 @@ int CNV_VectorLinearFit(const CNV_Vector* x, const CNV_Vector* y, double* coeff,
 
     double meanY = 0.0f;
     double sumSquareY = 0.0f;
-    cnv_size_t stopPosY = y->stride * y->size;
+    size_t stopPosY = y->stride * y->size;
     for (unsigned i = 0; i != stopPosY; i += y->stride)
     {
         meanY += y->data[i];
@@ -375,7 +408,7 @@ int CNV_VectorLinearFit(const CNV_Vector* x, const CNV_Vector* y, double* coeff,
 //===============================
 
 // initialize a vector view
-CNV_VectorView* CNV_VectorGetView(double* data, cnv_size_t size, cnv_size_t stride)
+CNV_VectorView* CNV_VectorGetView(double* data, size_t size, size_t stride)
 {
     // check input arguments
     assert(data != NULL && size != 0 && stride != 0);
